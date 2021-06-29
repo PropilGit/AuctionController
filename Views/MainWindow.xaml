@@ -7,7 +7,7 @@
         xmlns:vm="clr-namespace:AuctionController.ViewModels"
         xmlns:cmd="clr-namespace:AuctionController.Infrastructure.Commands"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow" Height="450" Width="450">
 
     <Window.DataContext>
         <vm:MainWindowViewModel/>
