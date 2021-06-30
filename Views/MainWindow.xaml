@@ -12,8 +12,23 @@
     <Window.DataContext>
         <vm:MainWindowViewModel/>
     </Window.DataContext>
-    
-    <Grid>
 
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="200"/>
+            <ColumnDefinition Width="300*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="30"/>
+        </Grid.RowDefinitions>
+        <WrapPanel Grid.Column="0" Margin="10,10,10,10" Orientation="Vertical" ItemWidth="180" >
+            <Button DockPanel.Dock="Top" Height="50"
+                    Content="Тест подписи на ЕФРСБ"
+                    Command="{Binding CheckSignatureEFRSBCommand}"/>
+        </WrapPanel>
+        <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+                   FontSize="14" 
+                   Text="{Binding Status}"/>
     </Grid>
 </Window>
