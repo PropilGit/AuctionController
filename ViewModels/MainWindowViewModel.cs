@@ -4,6 +4,7 @@ using AuctionController.ViewModels.Base;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 using System.Windows.Input;
 
 namespace AuctionController.ViewModels
@@ -13,10 +14,10 @@ namespace AuctionController.ViewModels
 
         public MainWindowViewModel()
         {
-            _SeleniumController = SeleniumController.GetInstance();
-
             //_Command = new LambdaCommand(On_CommandExecuted, Can_CommandExecute);
-            CheckSignatureEFRSBCommand = new LambdaCommand(OnCheckSignatureEFRSBCommandExecuted, CanCheckSignatureEFRSBCommandExecute);
+
+            StartCommand = new LambdaCommand(OnStartCommandExecuted, CanStartCommandExecute);
+            CheckSignatureMETSCommand = new LambdaCommand(OnCheckSignatureMETSCommandExecuted, CanCheckSignatureMETSCommandExecute);
         }
 
         #region Test
@@ -28,13 +29,49 @@ namespace AuctionController.ViewModels
 
         #endregion
 
-        #region CheckSignatureEFRSBCommand 
+        #region _
+        #endregion
 
-        public ICommand CheckSignatureEFRSBCommand { get; }
-        private bool CanCheckSignatureEFRSBCommandExecute(object p) => true;
-        private void OnCheckSignatureEFRSBCommandExecuted(object p)
+        #region StartCommand 
+
+        public ICommand StartCommand { get; }
+        private bool CanStartCommandExecute(object p)
         {
-            Status = _SeleniumController.CheckSignature_EFRSB();
+            if (_BlockInterface) return false;
+            if (_SeleniumController != null) return false;
+            else return true;
+        }
+        async private void OnStartCommandExecuted(object p)
+        {
+            _BlockInterface = true;
+            await Task.Run(() => InstantiateSeleniumAsync());
+        }
+        void InstantiateSeleniumAsync()
+        {
+            _SeleniumController = SeleniumController.GetInstance();
+            _BlockInterface = false;
+        }
+
+        #endregion
+
+        #region CheckSignatureMETSCommand 
+
+        public ICommand CheckSignatureMETSCommand { get; }
+        private bool CanCheckSignatureMETSCommandExecute(object p)
+        {
+            if (_BlockInterface) return false;
+            if (_SeleniumController == null) return false;
+            else return true;
+        }
+        async private void OnCheckSignatureMETSCommandExecuted(object p)
+        {
+            _BlockInterface = true;
+            await Task.Run(() => CheckSignatureMETSAsync());
+        }
+        void CheckSignatureMETSAsync()
+        {
+            Status = _SeleniumController.CheckSignatureMETS();
+            _BlockInterface = false;
         }
 
         #endregion
@@ -44,6 +81,8 @@ namespace AuctionController.ViewModels
         #region Selenium
 
         SeleniumController _SeleniumController;
+
+        bool _BlockInterface = false;
 
         #endregion
 

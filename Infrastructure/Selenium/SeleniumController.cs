@@ -1,5 +1,6 @@
 ﻿using OpenQA.Selenium;
 using OpenQA.Selenium.IE;
+using OpenQA.Selenium.Firefox;
 using OpenQA.Selenium.Support.UI;
 
 using System;
@@ -21,12 +22,32 @@ namespace AuctionController.Infrastructure.Selenium
 
         #endregion
 
+        /*
+        public delegate void StartTask();
+        public event StartTask onStartTask;
+
+        public delegate void EndTask();
+        public event StartTask onEndTask;
+        */
+
         IWebDriver driver;
         WebDriverWait wait;
 
         public SeleniumController()
         {
+            //driver = new InternetExplorerDriver();
+
+            //FirefoxProfile profile = new FirefoxProfile();
+            //profile.AddExtension("firefox_cryptopro_extension.xpi");
+
+            //FirefoxOptions options = new FirefoxOptions();
+            //options.Profile.AddExtension(@"firefox_cryptopro_extension.xpi");
+
             driver = new InternetExplorerDriver();
+            
+            //driver.install_addon('firefox_cryptopro_extension.xpi', temporary = True);
+            
+
             wait = new WebDriverWait(driver, TimeSpan.FromSeconds(15));
         }
 
@@ -35,25 +56,33 @@ namespace AuctionController.Infrastructure.Selenium
             driver.Close();
         }
 
-        public string CheckSignature_EFRSB(string auName = "Ляхов Андрей Николаевич")
+        public string CheckSignatureMETS(string auName = "Ляхов Андрей Николаевич")
         {
             
             try
             {
-                driver.Navigate().GoToUrl("https://bankrot.fedresurs.ru/CheckSignature.aspx");
-                wait.Until(e => e.FindElement(By.Id("ctl00_cphBody_ds1_ibCheck"))).Click();
+                // 1 Переходим на страницу
+                driver.Navigate().GoToUrl("https://m-ets.ru/signTest");
 
-                var Certificates = wait.Until(e => e.FindElements(By.XPath("//div[@class='certificate-list']/a")));
-                foreach (var c in Certificates)
+                // 2 Кликаем по кнопке
+                wait.Until(e => e.FindElement(By.XPath("//button[@id='submitbtn']"))).Click();
+
+                // 3 Кликаем по кнопке
+                wait.Until(e => e.FindElement(By.ClassName("pluginDialog_close"))).Click();
+
+                // 4 Получаем элементы из выпадающего списка
+                var certificates = wait.Until(e => e.FindElements(By.XPath("//select[@id='certSel']/option")));
+
+                // 5 Кликаем выпадающего списка
+                wait.Until(e => e.FindElement(By.XPath("//select[@id='certSel']"))).Click();
+
+                // 6 
+                foreach (var cert in certificates)
                 {
-                    string subject = c.FindElement(By.ClassName("subject")).Text;
-                    if (subject == auName)
-                    {
-                        c.Click();
-                        c.FindElement(By.XPath("//button[contains(@data-element-type, 'select-button')]")).Click();
-                        break;
-                    }
+                    if (cert.Text == auName) cert.Click();
+                    break;
                 }
+                /*
                 IAlert alert = wait.Until(ExpectedConditions.AlertIsPresent());
                 if (alert.Text == "Электронная подпись успешно прошла проверку.")
                 {
@@ -62,6 +91,8 @@ namespace AuctionController.Infrastructure.Selenium
                 }
                 else return "FAIL: " + alert.Text;
                 return "ERROR: На этапе получения Alert";
+                */
+                return "test";
             }
             catch (Exception ex)
             {
