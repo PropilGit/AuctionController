@@ -6,6 +6,7 @@ using OpenQA.Selenium.Support.UI;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 
 namespace AuctionController.Infrastructure.Selenium
 {
@@ -56,7 +57,7 @@ namespace AuctionController.Infrastructure.Selenium
             driver.Close();
         }
 
-        public string CheckSignatureMETS(string auName = "Ляхов Андрей Николаевич")
+        public string CheckSignatureMETS(string auName = "Хамидулин Илья Хамитович")
         {
             
             try
@@ -67,20 +68,26 @@ namespace AuctionController.Infrastructure.Selenium
                 // 2 Кликаем по кнопке
                 wait.Until(e => e.FindElement(By.XPath("//button[@id='submitbtn']"))).Click();
 
-                // 3 Кликаем по кнопке
-                wait.Until(e => e.FindElement(By.ClassName("pluginDialog_close"))).Click();
+                // Закрываем уведомление
+                //wait.Until(e => e.FindElement(By.ClassName("pluginDialog_close"))).Click();
 
-                // 4 Получаем элементы из выпадающего списка
+                // 3 Получаем элементы из выпадающего списка
                 var certificates = wait.Until(e => e.FindElements(By.XPath("//select[@id='certSel']/option")));
 
-                // 5 Кликаем выпадающего списка
+                // 4 Кликаем выпадающего списка
                 wait.Until(e => e.FindElement(By.XPath("//select[@id='certSel']"))).Click();
 
-                // 6 
+                // 5 
                 foreach (var cert in certificates)
                 {
-                    if (cert.Text == auName) cert.Click();
-                    break;
+                    string c = cert.Text;
+                    if (cert.Text.Contains(auName))
+                    {
+                        cert.Click();
+                        Thread.Sleep(5000);
+                        break;
+                    }
+                    
                 }
                 /*
                 IAlert alert = wait.Until(ExpectedConditions.AlertIsPresent());
