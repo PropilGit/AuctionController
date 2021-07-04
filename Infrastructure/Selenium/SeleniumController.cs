@@ -36,18 +36,7 @@ namespace AuctionController.Infrastructure.Selenium
 
         public SeleniumController()
         {
-            //driver = new InternetExplorerDriver();
-
-            //FirefoxProfile profile = new FirefoxProfile();
-            //profile.AddExtension("firefox_cryptopro_extension.xpi");
-
-            //FirefoxOptions options = new FirefoxOptions();
-            //options.Profile.AddExtension(@"firefox_cryptopro_extension.xpi");
-
             driver = new InternetExplorerDriver();
-            
-            //driver.install_addon('firefox_cryptopro_extension.xpi', temporary = True);
-            
 
             wait = new WebDriverWait(driver, TimeSpan.FromSeconds(15));
         }
@@ -66,7 +55,7 @@ namespace AuctionController.Infrastructure.Selenium
                 driver.Navigate().GoToUrl("https://m-ets.ru/signTest");
 
                 // 2 Кликаем по кнопке
-                wait.Until(e => e.FindElement(By.XPath("//button[@id='submitbtn']"))).Click();
+                wait.Until(e => e.FindElement(By.XPath("//button[@id='submitbtn']"))).SendKeys(Keys.Enter);
 
                 // Закрываем уведомление
                 //wait.Until(e => e.FindElement(By.ClassName("pluginDialog_close"))).Click();
@@ -74,32 +63,38 @@ namespace AuctionController.Infrastructure.Selenium
                 // 3 Получаем элементы из выпадающего списка
                 var certificates = wait.Until(e => e.FindElements(By.XPath("//select[@id='certSel']/option")));
 
-                // 4 Кликаем выпадающего списка
-                wait.Until(e => e.FindElement(By.XPath("//select[@id='certSel']"))).Click();
+                // 4 Кликаем по выпадающему списку
+                wait.Until(e => e.FindElement(By.XPath("//select[@id='certSel']"))).SendKeys(Keys.Enter);
 
                 // 5 
                 foreach (var cert in certificates)
                 {
-                    string c = cert.Text;
                     if (cert.Text.Contains(auName))
                     {
-                        cert.Click();
-                        Thread.Sleep(5000);
+                        cert.SendKeys(Keys.Enter);
                         break;
-                    }
-                    
+                    }   
                 }
+
+                // 6
+                //string xpath = @"//div[contains(@role, 'dialog')]/div[contains(@class, 'ui-dialog-buttonpane')]/div[contains(@class, 'ui-dialog-buttonset')]/button[1]";
+                string xpath = "/html/body/div[20]/div[11]/div/button[1]";
+                wait.Until(e => e.FindElement(By.XPath(xpath))).SendKeys(Keys.Enter);
+
+                // 7 
                 /*
-                IAlert alert = wait.Until(ExpectedConditions.AlertIsPresent());
-                if (alert.Text == "Электронная подпись успешно прошла проверку.")
+                do
                 {
-                    alert.Accept();
-                    return "OK";
-                }
-                else return "FAIL: " + alert.Text;
-                return "ERROR: На этапе получения Alert";
+                    
+                }while()
+
+                
+
+                xpath = "/html/body/div[13]/div[3]/div[2]/div/div[5]/p/span";
+                var el = wait.Until(e => e.FindElement(By.XPath(xpath)));
+                if (el.Text.Contains(auName)) return "OK";
+                else return "FAIL";
                 */
-                return "test";
             }
             catch (Exception ex)
             {
