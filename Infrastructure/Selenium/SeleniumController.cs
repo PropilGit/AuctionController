@@ -196,28 +196,26 @@ namespace AuctionController.Infrastructure.Selenium
                 // 6 Кнопка OK
                 if (!TryClickOnElement("/html/body/div[20]/div[11]/div/button[1]")) return false;
 
-                // 7 Получаем уведомление
+                // 7 Получаем уведомление (Если оно есть)
                 IAlert alert = TryFindAlert();
-                if (alert == null) return false;
-                // проверяем содержимое Alert-а
-                if(!alert.Text.Contains("Этот веб-сайт пытается выполнить операцию с ключами или сертификатами от имени пользователя."))
+                if (alert != null)
                 {
-                    AddLog("Неверный Alert: " + alert.Text);
+                    // проверяем содержимое Alert-а
+                    if (alert != null && !alert.Text.Contains("Этот веб-сайт пытается выполнить операцию с ключами или сертификатами от имени пользователя."))
+                    {
+                        AddLog("Неверный Alert: " + alert.Text);
+                        alert.Accept();
+                        return false;
+                    }
                     alert.Accept();
-                    return false;
                 }
-                alert.Accept();
 
-
-                /*
-                xpath = "/html/body/div[13]/div[3]/div[2]/div/div[5]/p/span";
-                var el = wait.Until(e => e.FindElement(By.XPath(xpath)));
-                if (el.Text.Contains(auName)) return "OK";
-                else return "FAIL";
-                */
-                return true;
+                // 8 Проверяем сообщение об успешном результате
+                var el = TryFindElement("/html/body/div[13]/div[3]/div[2]/div/div[5]/p");
+                if (el == null || !el.Text.Contains(auName)) return false;
+                else return true;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return false;
             }

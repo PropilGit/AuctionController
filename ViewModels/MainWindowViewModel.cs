@@ -26,7 +26,20 @@ namespace AuctionController.ViewModels
 
         bool _BlockInterface = false;
 
-        public bool UseSendKeys { get => _SeleniumController.UseSendKeys; set => Set(ref _SeleniumController.UseSendKeys, value); }
+        public bool UseSendKeys
+        {
+            //get => _SeleniumController.UseSendKeys; set => Set(ref _SeleniumController.UseSendKeys, value);
+            get
+            {
+                if (_SeleniumController == null) return false;
+                else return _SeleniumController.UseSendKeys;
+            }
+            set
+            {
+                if (_SeleniumController == null) return;
+                else Set(ref _SeleniumController.UseSendKeys, value);
+            }
+        }
 
         #region Start
 

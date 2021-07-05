@@ -55,8 +55,8 @@
             <TabItem Header="Selenium">
                 <Grid>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="450*"/>
-                        <ColumnDefinition Width="200"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="300"/>
                     </Grid.ColumnDefinitions>
                     <Label Grid.Column="0" Margin="5,5,0,0"
                            Content="Log"/>
@@ -64,10 +64,15 @@
                         <TextBlock TextWrapping="Wrap"
                                    Text="{Binding Log}"/>
                     </ScrollViewer>
-                    <StackPanel Grid.Column="1" Margin="5,5,5,0">
-                        <CheckBox Content="Использвать SendKeys(Enter)"
-                                  IsEnabled="{Binding Started}"
+                    <StackPanel Grid.Column="1" Margin="5,10,5,10" IsEnabled="{Binding Started}">
+                        <CheckBox Content="Использвать SendKeys(Enter) вместо Click()"
                                   IsChecked="{Binding UseSendKeys}"/>
+                        <DockPanel Margin="0,10,0,0">
+                            <TextBlock Text="Ожидание загрузки элемента, сек.   "/>
+                            
+                            
+                        </DockPanel>
+                        
                     </StackPanel>
                 </Grid>
             </TabItem>
