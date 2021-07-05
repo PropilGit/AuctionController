@@ -2,7 +2,6 @@
 using OpenQA.Selenium.IE;
 using OpenQA.Selenium.Firefox;
 using OpenQA.Selenium.Support.UI;
-
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -27,7 +26,7 @@ namespace AuctionController.Infrastructure.Selenium
         IWebDriver driver;
         WebDriverWait wait;
 
-        public SeleniumController()
+        public SeleniumController(int waitTime = 10)
         {
             //FirefoxProfile profile = new FirefoxProfileManager().GetProfile("m-ets");
             //string prof = "C:\\Users\\MinhPhuc\\AppData\\Local\\Mozilla\\Firefox\\Profiles\\tiqq1wks.dev-edition-default\\";
@@ -39,8 +38,12 @@ namespace AuctionController.Infrastructure.Selenium
 
             // IE
             driver = new InternetExplorerDriver();
+            ChangeWebDriverWait(waitTime);
+        }
 
-            wait = new WebDriverWait(driver, TimeSpan.FromSeconds(15));
+        public void ChangeWebDriverWait(int seconds)
+        {
+            wait = new WebDriverWait(driver, TimeSpan.FromSeconds(seconds));
         }
 
         ~SeleniumController()
@@ -165,7 +168,7 @@ namespace AuctionController.Infrastructure.Selenium
 
         #endregion
 
-        public bool CheckSignatureMETS(string auName = "Хамидулин Илья Хамитович")
+        public bool CheckSignatureMETS(string auName)
         {
             
             try

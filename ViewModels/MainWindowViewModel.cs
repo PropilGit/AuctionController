@@ -18,7 +18,14 @@ namespace AuctionController.ViewModels
 
             StartCommand = new LambdaCommand(OnStartCommandExecuted, CanStartCommandExecute);
             CheckSignatureMETSCommand = new LambdaCommand(OnCheckSignatureMETSCommandExecuted, CanCheckSignatureMETSCommandExecute);
+            ChangeWaitTimeCommand = new LambdaCommand(OnChangeWaitTimeCommandExecuted, CanChangeWaitTimeCommandExecute);
         }
+
+        #region AU
+
+        string AUName = "Хамидулин Илья Хамитович";
+
+        #endregion
 
         #region Selenium
 
@@ -41,14 +48,47 @@ namespace AuctionController.ViewModels
             }
         }
 
-        #region Start
+        #region WaitTime
 
-        #region Started
+        int _WaitTime = 10;
+        public int WaitTime
+        {
+            get => _WaitTime;
+            set
+            {
+                if (value < 1 || value > 60) return;
+                else Set(ref _WaitTime, value);
+            }
+        }
+
+        #region ChangeWaitTimeCommand 
+
+        public ICommand ChangeWaitTimeCommand { get; }
+        private bool CanChangeWaitTimeCommandExecute(object p)
+        {
+            if (_BlockInterface) return false;
+            if (_SeleniumController == null) return false;
+            return true;
+        }
+        async private void OnChangeWaitTimeCommandExecuted(object p)
+        {
+            _BlockInterface = true;
+            await Task.Run(() => ChangeWaitTimeAsync());
+        }
+        void ChangeWaitTimeAsync()
+        {
+            _SeleniumController.ChangeWebDriverWait(WaitTime);
+            _BlockInterface = false;
+        }
+
+        #endregion
+
+        #endregion
+
+        #region Start
 
         bool _Started = false;
         public bool Started { get => _Started; set => Set(ref _Started, value); }
-
-        #endregion
 
         #region StartCommand 
 
@@ -78,12 +118,8 @@ namespace AuctionController.ViewModels
 
         #region Check
 
-        #region Checked
-
         bool _Checked = false;
         public bool Checked { get => _Checked; set => Set(ref _Checked, value); }
-
-        #endregion
 
         #region CheckSignatureMETSCommand 
 
@@ -101,7 +137,8 @@ namespace AuctionController.ViewModels
         }
         void CheckSignatureMETSAsync()
         {
-            Checked = _SeleniumController.CheckSignatureMETS();
+            Checked = _SeleniumController.CheckSignatureMETS(AUName);
+            if (Checked) Status = "ЭЦП на имя [" + AUName + "] успешно прошла проверку.";
             _BlockInterface = false;
         }
 
