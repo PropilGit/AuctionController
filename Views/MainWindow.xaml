@@ -29,22 +29,53 @@
                 <ComboBox Margin="5,10,5,10"
                     Width="300" Height="20"/>
             </StackPanel>
-            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Width="220">
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Width="280">
+                <CheckBox VerticalAlignment="Center" IsEnabled="False"
+                          IsChecked="{Binding Checked, Mode=OneWay}"/>
                 <Button Margin="5,10,5,10"
                     Width="100" Height="30" Content="Проверка"
-                    Command="{Binding CheckSignatureMETSCommand}"/>
+                    Command="{Binding CheckSignatureMETSCommand}">
+                </Button>
+                <CheckBox VerticalAlignment="Center" IsEnabled="False"
+                          IsChecked="{Binding Started, Mode=OneWay}"/>
                 <Button Margin="5,10,5,10"
                     Width="100" Height="30" Content="Запуск"
-                    Command="{Binding StartCommand}"/>
+                    Command="{Binding StartCommand}">
+                    
+                </Button>
             </StackPanel>
             
         </DockPanel>
-        <DataGrid Grid.Row="1">
-            
-        </DataGrid>
+        <TabControl Grid.Row="1">
+            <TabItem Header="Список лотов">
+                <DataGrid>
+
+                </DataGrid>
+            </TabItem>
+            <TabItem Header="Selenium">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="450*"/>
+                        <ColumnDefinition Width="200"/>
+                    </Grid.ColumnDefinitions>
+                    <Label Grid.Column="0" Margin="5,5,0,0"
+                           Content="Log"/>
+                    <ScrollViewer Grid.Column="0" Margin="5,30,0,0">
+                        <TextBlock TextWrapping="Wrap"
+                                   Text="{Binding Log}"/>
+                    </ScrollViewer>
+                    <StackPanel Grid.Column="1" Margin="5,5,5,0">
+                        <CheckBox Content="Использвать SendKeys(Enter)"
+                                  IsEnabled="{Binding Started}"
+                                  IsChecked="{Binding UseSendKeys}"/>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+        </TabControl>
         <DockPanel Grid.Row="2"
                    Background="LightBlue">
             <TextBlock Margin="5,5,5,5"
+                       FontSize="10"
                        Text="{Binding Status}"/>
         </DockPanel>
     </Grid>

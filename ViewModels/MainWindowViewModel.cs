@@ -20,16 +20,21 @@ namespace AuctionController.ViewModels
             CheckSignatureMETSCommand = new LambdaCommand(OnCheckSignatureMETSCommandExecuted, CanCheckSignatureMETSCommandExecute);
         }
 
-        #region Test
+        #region Selenium
 
-        #region Status
+        SeleniumController _SeleniumController;
 
-        string _Status = "...";
-        public string Status { get => _Status; set => Set(ref _Status, value); }
+        bool _BlockInterface = false;
 
-        #endregion
+        public bool UseSendKeys { get => _SeleniumController.UseSendKeys; set => Set(ref _SeleniumController.UseSendKeys, value); }
 
-        #region _
+        #region Start
+
+        #region Started
+
+        bool _Started = false;
+        public bool Started { get => _Started; set => Set(ref _Started, value); }
+
         #endregion
 
         #region StartCommand 
@@ -49,8 +54,21 @@ namespace AuctionController.ViewModels
         void InstantiateSeleniumAsync()
         {
             _SeleniumController = SeleniumController.GetInstance();
+            _SeleniumController.onLogUpdate += AddLog;
+            Started = true;
             _BlockInterface = false;
         }
+
+        #endregion
+
+        #endregion
+
+        #region Check
+
+        #region Checked
+
+        bool _Checked = false;
+        public bool Checked { get => _Checked; set => Set(ref _Checked, value); }
 
         #endregion
 
@@ -70,7 +88,7 @@ namespace AuctionController.ViewModels
         }
         void CheckSignatureMETSAsync()
         {
-            Status = _SeleniumController.CheckSignatureMETS();
+            Checked = _SeleniumController.CheckSignatureMETS();
             _BlockInterface = false;
         }
 
@@ -78,11 +96,42 @@ namespace AuctionController.ViewModels
 
         #endregion
 
-        #region Selenium
+        #endregion
 
-        SeleniumController _SeleniumController;
+        #region Status
 
-        bool _BlockInterface = false;
+        string _Status = "...";
+        public string Status { get => _Status; set => Set(ref _Status, value); }
+
+        #endregion
+
+        #region Log
+
+        int maxLogValue = 150;
+        int logCounter = 0;
+
+        private string _Log = "";
+        public string Log { get => _Log; set => Set(ref _Log, value); }
+
+        public void AddLog(string msg, bool isError = false)
+        {
+            //если есть пометка об ошибке
+            if (isError)
+            {
+                msg = "ERROR: " + msg;
+                Status = msg;
+                //_TelegramBot.SendMessageToChat(msg, GetChatId(debugChat.Tag));
+            }
+            Log += "[" + DateTime.Now + "] " + msg + "\r\n";
+            logCounter++;
+            
+            //Очищаем лог
+            if (logCounter >= maxLogValue)
+            {
+                logCounter = 0;
+                Log = "";
+            }
+        }
 
         #endregion
 
