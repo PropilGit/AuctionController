@@ -1,8 +1,11 @@
 ﻿using AuctionController.Infrastructure.Commands.Base;
+using AuctionController.Infrastructure.JSON;
 using AuctionController.Infrastructure.Selenium;
+using AuctionController.Models;
 using AuctionController.ViewModels.Base;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -14,16 +17,60 @@ namespace AuctionController.ViewModels
 
         public MainWindowViewModel()
         {
+            LoadAUList();
+
             //_Command = new LambdaCommand(On_CommandExecuted, Can_CommandExecute);
 
             StartCommand = new LambdaCommand(OnStartCommandExecuted, CanStartCommandExecute);
-            CheckSignatureMETSCommand = new LambdaCommand(OnCheckSignatureMETSCommandExecuted, CanCheckSignatureMETSCommandExecute);
+            CheckMETSCommand = new LambdaCommand(OnCheckMETSCommandExecuted, CanCheckMETSCommandExecute);
             ChangeWaitTimeCommand = new LambdaCommand(OnChangeWaitTimeCommandExecuted, CanChangeWaitTimeCommandExecute);
         }
 
-        #region AU
+        #region AUs
 
-        string AUName = "Хамидулин Илья Хамитович";
+        string AUPath = "AUs.json";
+
+        public ObservableCollection<ArbitralManager> AUs { get; private set; }
+        public ArbitralManager SelectedAU { get; set; } 
+
+        void LoadAUList()
+        {
+            AUs = JSONConverter.OpenJSONFile<ObservableCollection<ArbitralManager>>(AUPath);
+            if (AUs == null || AUs.Count == 0)
+            {
+                AUs = new ObservableCollection<ArbitralManager>();
+                SelectedAU = null;
+                AddLog("Ошибка загрузки списка Арбитражных Управляющих", true);
+            }
+            else SelectedAU = AUs[0];
+        }
+
+        #endregion
+
+        #region Lots
+
+        List<int> LotIds = new List<int>()
+        {
+            17841129,
+            17841270,
+            17011962,
+            13748863,
+            13742798,
+            7725899,
+            17731701,
+            17843855,
+            17843854,
+            15661860
+        };
+
+        public ObservableCollection<Lot> Lots;
+
+        public ObservableCollection<Lot> GetLots()
+        {
+            if (_SeleniumController == null) return null;
+
+            return _SeleniumController.ParseLots(LotIds); 
+        }
 
         #endregion
 
@@ -77,7 +124,7 @@ namespace AuctionController.ViewModels
         }
         void ChangeWaitTimeAsync()
         {
-            _SeleniumController.ChangeWebDriverWait(WaitTime);
+            _SeleniumController.UpdateWebDriverWait(WaitTime);
             _BlockInterface = false;
         }
 
@@ -121,24 +168,31 @@ namespace AuctionController.ViewModels
         bool _Checked = false;
         public bool Checked { get => _Checked; set => Set(ref _Checked, value); }
 
-        #region CheckSignatureMETSCommand 
+        #region CheckMETSCommand
 
-        public ICommand CheckSignatureMETSCommand { get; }
-        private bool CanCheckSignatureMETSCommandExecute(object p)
+        public ICommand CheckMETSCommand { get; }
+        private bool CanCheckMETSCommandExecute(object p)
         {
             if (_BlockInterface) return false;
             if (_SeleniumController == null) return false;
+            if (SelectedAU == null) return false;
             else return true;
         }
-        async private void OnCheckSignatureMETSCommandExecuted(object p)
+        async private void OnCheckMETSCommandExecuted(object p)
         {
             _BlockInterface = true;
-            await Task.Run(() => CheckSignatureMETSAsync());
-        }
-        void CheckSignatureMETSAsync()
+            await Task.Run(() => CheckMETSAsync());
+        }     
+        void CheckMETSAsync()
         {
-            Checked = _SeleniumController.CheckSignatureMETS(AUName);
-            if (Checked) Status = "ЭЦП на имя [" + AUName + "] успешно прошла проверку.";
+            bool login = _SeleniumController.Login_METS(SelectedAU);
+            bool sighature = _SeleniumController.CheckSignature_METS(SelectedAU.Name);
+
+            if (login == true && sighature == true)
+            {
+                Checked = true;
+                Status = "[" + SelectedAU.Name + "] Вход в Личный кабинет и проверка ЭЦП завершились успешно";
+            }
             _BlockInterface = false;
         }
 

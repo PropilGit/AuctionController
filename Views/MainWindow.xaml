@@ -27,15 +27,16 @@
                 <TextBlock Margin="5,5,5,5" Width="150" Height="40"
                        FontSize="32" FontFamily="Impact" TextAlignment="Center" 
                        Text="МЭТС"/>
-                <ComboBox Margin="5,10,5,10"
-                    Width="300" Height="20"/>
+                <ComboBox Margin="5,10,5,10" Width="300" Height="20"
+                          ItemsSource="{Binding AUs}" DisplayMemberPath="Name"
+                          SelectedItem="{Binding SelectedAU}"/>
             </StackPanel>
             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Width="280">
                 <CheckBox VerticalAlignment="Center" IsEnabled="False"
                           IsChecked="{Binding Checked, Mode=OneWay}"/>
                 <Button Margin="5,10,5,10"
                     Width="100" Height="30" Content="Проверка"
-                    Command="{Binding CheckSignatureMETSCommand}">
+                    Command="{Binding CheckMETSCommand}">
                 </Button>
                 <CheckBox VerticalAlignment="Center" IsEnabled="False"
                           IsChecked="{Binding Started, Mode=OneWay}"/>
