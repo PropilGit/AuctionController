@@ -6,29 +6,29 @@ namespace AuctionController.Models
 {
     class Lot
     {
-        public Lot(int id, int number, string name, string link, double currentRate, DateTime startDate)
+        public Lot(int id, int number, string name, double currentPrice, DateTime startDate)
         {
             Id = id;
             Number = number;
             Name = name;
-            Link = link;
-            CurrentRate = currentRate;
+            //Link = link;
+            CurrentPrice = currentPrice;
             StartDate = startDate;
         }
 
         public int Id { get; private set; }
         public int Number { get; private set; }
         public string Name { get; private set; }
-        public string Link { get; private set; }
-        public double CurrentRate { get; private set; }
+        //public string Link { get; private set; }
+        public double CurrentPrice { get; private set; }
         //public double Step { get; private set; }
         public DateTime StartDate { get; private set; }
 
-        public bool UpdateCurrentRate(double newRate)
+        public bool UpdateCurrentPrice(double newPrice)
         {
-            if (CurrentRate > newRate) return false;
+            if (CurrentPrice > newPrice) return false;
 
-            CurrentRate = newRate;
+            CurrentPrice = newPrice;
             return true;
         }
     }

@@ -32,16 +32,20 @@
                           SelectedItem="{Binding SelectedAU}"/>
             </StackPanel>
             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Width="280">
+                <Button Margin="5,10,5,10"
+                    Width="70" Height="30" Content="Лоты" 
+                    Command="{Binding GetLotsAURUCommand}">
+                </Button>
                 <CheckBox VerticalAlignment="Center" IsEnabled="False"
                           IsChecked="{Binding Checked, Mode=OneWay}"/>
                 <Button Margin="5,10,5,10"
-                    Width="100" Height="30" Content="Проверка"
+                    Width="70" Height="30" Content="Проверка"
                     Command="{Binding CheckMETSCommand}">
                 </Button>
                 <CheckBox VerticalAlignment="Center" IsEnabled="False"
                           IsChecked="{Binding Started, Mode=OneWay}"/>
                 <Button Margin="5,10,5,10"
-                    Width="100" Height="30" Content="Запуск"
+                    Width="70" Height="30" Content="Запуск"
                     Command="{Binding StartCommand}">
                     
                 </Button>
@@ -50,7 +54,7 @@
         </DockPanel>
         <TabControl Grid.Row="1">
             <TabItem Header="Список лотов">
-                <DataGrid>
+                <DataGrid ItemsSource="{Binding Lots}">
 
                 </DataGrid>
             </TabItem>

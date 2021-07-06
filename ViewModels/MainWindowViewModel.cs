@@ -24,6 +24,8 @@ namespace AuctionController.ViewModels
             StartCommand = new LambdaCommand(OnStartCommandExecuted, CanStartCommandExecute);
             CheckMETSCommand = new LambdaCommand(OnCheckMETSCommandExecuted, CanCheckMETSCommandExecute);
             ChangeWaitTimeCommand = new LambdaCommand(OnChangeWaitTimeCommandExecuted, CanChangeWaitTimeCommandExecute);
+            //GetLotsAURU
+            GetLotsAURUCommand = new LambdaCommand(OnGetLotsAURUCommandExecuted, CanGetLotsAURUCommandExecute);
         }
 
         #region AUs
@@ -65,12 +67,27 @@ namespace AuctionController.ViewModels
 
         public ObservableCollection<Lot> Lots;
 
-        public ObservableCollection<Lot> GetLots()
-        {
-            if (_SeleniumController == null) return null;
+        #region GetLotsAURUCommand 
 
-            return _SeleniumController.ParseLots(LotIds); 
+        public ICommand GetLotsAURUCommand { get; }
+        private bool CanGetLotsAURUCommandExecute(object p)
+        {
+            if (_BlockInterface) return false;
+            if (_SeleniumController == null) return false;
+            else return true;
         }
+        async private void OnGetLotsAURUCommandExecuted(object p)
+        {
+            _BlockInterface = true;
+            await Task.Run(() => GetLotsAURUAsync());
+        }
+        void GetLotsAURUAsync()
+        {
+            Lots = _SeleniumController.ParseLots_AURU(LotIds);
+            _BlockInterface = false;
+        }
+
+        #endregion
 
         #endregion
 

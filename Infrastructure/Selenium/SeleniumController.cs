@@ -249,9 +249,6 @@ namespace AuctionController.Infrastructure.Selenium
                 return false;
             }
         }
-
-        #region Login
-
         public bool Login_METS(ArbitralManager AU)
         {
             try
@@ -289,18 +286,16 @@ namespace AuctionController.Infrastructure.Selenium
             }
         }
 
-        #endregion
-
         #region ParseLots
 
-        public ObservableCollection<Lot> ParseLots(List<int> lotIds)
+        public ObservableCollection<Lot> ParseLots_AURU(List<int> lotIds)
         {
             try
             {
                 ObservableCollection<Lot> result = new ObservableCollection<Lot>();
                 foreach (var id in lotIds)
                 {
-                    result.Add(ParseLot_METS(id));
+                    result.Add(ParseLot_AURU(id));
                 }
                 return result;
             }
@@ -311,9 +306,46 @@ namespace AuctionController.Infrastructure.Selenium
             }
         }
 
-        public Lot ParseLot_METS(int lotId)
+        public Lot ParseLot_AURU(int lotId)
         {
-            return null;
+            try
+            {
+                // 1 Переходим на страницу лота
+                driver.Navigate().GoToUrl(@"https://nsk.au.ru/" + lotId);
+
+                // 2 Number
+                int number = 0;
+                var numberEl = TryFindElement("//*[@id='item-page_0']/div/div/div[1]/div[3]/div[1]/div[2]/div/span[5]/a");
+                if (numberEl != null && numberEl.Text != "") number = Int32.Parse(numberEl.Text);
+                else return null;
+
+                // 3 Name
+                string name = "";
+                var nameEl = TryFindElement("//*[@id='item-page_0']/div/div/div[1]/div[3]/div[1]/div[1]/h1");
+                if (nameEl != null && nameEl.Text != "") name = nameEl.Text;
+                else return null;
+
+                // 4 CurrentPrice
+                double currentPrice = 0;
+                var currentPriceEl = TryFindElement("//*[@id='trading']/div/div[1]/div/div[2]/div[2]/div[1]/div[1]/span/span[1]");
+                if (currentPriceEl != null && currentPriceEl.Text != "") currentPrice = Double.Parse(currentPriceEl.Text);
+                else return null;
+
+                // 5 StartDate
+                DateTime startDate = DateTime.UnixEpoch;
+                var startDateEl = TryFindElement("//*[@id='trading']/div/div[5]/div/div[2]/div/span[2]/span[2]");
+                if (startDateEl != null && startDateEl.Text != "") startDate = DateTime.Parse(startDateEl.Text);
+                else return null;
+
+                // 6
+                return new Lot(lotId, number, name, currentPrice, startDate);
+            
+            }
+            catch (Exception ex)
+            {
+                AddLog("ParseLot_AURU(" + lotId + "): " + ex.Message);
+                return null;
+            }
         }
 
         #endregion
