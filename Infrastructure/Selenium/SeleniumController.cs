@@ -32,10 +32,7 @@ namespace AuctionController.Infrastructure.Selenium
         {
 
             //Firefox
-            string path = "6r6tb0tm.mets";//"C:\\Users\\Propil\\AppData\\Roaming\\Mozilla\\Firefox\\Profiles\\6r6tb0tm.mets";
-
-            FirefoxProfileManager pm = new FirefoxProfileManager();
-            pm.GetProfile("m-ets");
+            string path = @"12345678.m-ets";
 
             FirefoxOptions options = new FirefoxOptions();
             options.Profile = new FirefoxProfile(path);
@@ -44,10 +41,10 @@ namespace AuctionController.Infrastructure.Selenium
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
             driver = new FirefoxDriver(options);
-            //driver = new FirefoxDriver();
 
             // IE
             //driver = new InternetExplorerDriver();
+
             UpdateWebDriverWait(waitTime);
         }
         ~SeleniumController()
@@ -181,13 +178,33 @@ namespace AuctionController.Infrastructure.Selenium
         {
             try
             {
-                return wait.Until(ExpectedConditions.AlertIsPresent());
+                bool test = wait.Until(ExpectedConditions.TitleContains("Подтверждение доступа"));
+                IAlert alert = wait.Until(ExpectedConditions.AlertIsPresent());
+                return alert;
             }
             catch (Exception ex)
             {
                 AddLog("TryFindAlert(): " + ex.Message, true);
                 return null;
             }
+        }
+
+        private IAlert WaitForAlert(int attemptsCount = 5, int delay = 1000)
+        {
+            int i = 0;
+            while (i++ < attemptsCount)
+            {
+                try
+                {
+                    return driver.SwitchTo().Alert();
+                }
+                catch (NoAlertPresentException e)
+                {
+                    Thread.Sleep(delay);
+                    continue;
+                }
+            }
+            return null;
         }
 
         #endregion
@@ -269,20 +286,6 @@ namespace AuctionController.Infrastructure.Selenium
                 // 2 Кликаем по кнопке
                 if (!TryClickOnElement("//*[@id='submitbtn']")) return false;
 
-                // 3 Получаем уведомление (Если оно есть)
-                IAlert alert = TryFindAlert();
-                if (alert != null)
-                {
-                    // проверяем содержимое Alert-а
-                    if (alert != null && !alert.Text.Contains("Этот веб-сайт пытается выполнить операцию с ключами или сертификатами от имени пользователя."))
-                    {
-                        AddLog("Неверный Alert: " + alert.Text);
-                        alert.Accept();
-                        return false;
-                    }
-                    alert.Accept();
-                }
-
                 // 3 Получаем элементы списка
                 var certificates = TryFindElements("//div[@id='certSel2_listCert']/label/div");
                 if (certificates == null) return false;
@@ -292,11 +295,11 @@ namespace AuctionController.Infrastructure.Selenium
                 foreach (var cert in certificates)
                 {
                     // 5.2 Получаем span с заголовком
-                    var c = TryFindElement(cert, "//div[1]/span");
-                    if (c == null) return false;
+                    //var c = TryFindElement(cert, "//div[1]/span");
+                    //if (c == null) return false;
 
                     // 5.3 Кликаем по элементу если его заголовок содержит имя АУшника
-                    if (c.Text.Contains(auName))
+                    if (cert.Text.Contains(auName))
                     {
                         if (!TryClickOnElement(cert)) return false;
                         break;
@@ -359,28 +362,34 @@ namespace AuctionController.Infrastructure.Selenium
         {
             try
             {
-
                 // 1 Переходим на стрницу
                 driver.Navigate().GoToUrl(@"https://m-ets.ru/");
 
-                // 2 Кликаем по кнопке "Личный кабинет"
+                // 2 Проверяем залогинены ли мы сейчас 
+                var success = TryFindElement("//*[@id='login-form-logged']/div[3]");
+                if (success != null)
+                {
+                    if(success.Text.Contains(AU.Name)) return true;
+                }
+
+                // 3 Кликаем по кнопке "Личный кабинет"
                 if (!TryClickOnElement("//div[@id='header-right']/div[2]/button")) return false;
 
-                // 3 Вводим Логин
+                // 4 Вводим Логин
                 var login = TryFindElement("//*[@id='postAuthDialog']/div[2]/form/div[1]/div[2]/input");
                 if (login == null) return false;
                 login.SendKeys(AU.Login);
 
-                // 4 Вводим Пароль
+                // 5 Вводим Пароль
                 var pass = TryFindElement("//*[@id='postAuthDialog']/div[2]/form/div[2]/div[2]/input");
                 if (pass == null) return false;
                 pass.SendKeys(AU.Password);
 
-                // 5 Кликаем по кнопке "Войти"
+                // 6 Кликаем по кнопке "Войти"
                 if (!TryClickOnElement("//*[@id='postAuthDialog']/div[2]/form/input[2]")) return false;
 
-                // 6 Проверка успеха
-                var success = TryFindElement("//*[@id='login-form-logged']/div[1]");
+                // 7 Проверка успеха
+                success = TryFindElement("//*[@id='login-form-logged']/div[3]");
                 if (success == null || !success.Text.Contains(AU.Name)) return false;
                 else return true;
 

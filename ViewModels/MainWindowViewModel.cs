@@ -202,9 +202,10 @@ namespace AuctionController.ViewModels
         }     
         void CheckMETSAsync()
         {
-            bool login = true;// _SeleniumController.Login_METS_MF(SelectedAU);
+            bool login = _SeleniumController.Login_METS_MF(SelectedAU);
             bool sighature = _SeleniumController.CheckSignature_METS_MF(SelectedAU.Name);
 
+            
             if (login == true && sighature == true)
             {
                 Checked = true;
