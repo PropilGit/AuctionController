@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading;
 using System.Collections.ObjectModel;
 using AuctionController.Models;
+using System.Text.RegularExpressions;
 
 
 namespace AuctionController.Infrastructure.Selenium
@@ -428,28 +429,32 @@ namespace AuctionController.Infrastructure.Selenium
                 // 1 Переходим на страницу лота
                 driver.Navigate().GoToUrl(@"https://nsk.au.ru/" + lotId);
 
+                // /html/body/div[1]/div[4]/div[1]/div/div/div/div[2]/div/a/div
+                TryClickOnElement("/html/body/div[1]/div[4]/div[1]/div/div/div/div[2]/div/a/div");
+
                 // 2 Number
                 int number = 0;
                 var numberEl = TryFindElement("//*[@id='item-page_0']/div/div/div[1]/div[3]/div[1]/div[2]/div/span[5]/a");
-                if (numberEl != null && numberEl.Text != "") number = Int32.Parse(numberEl.Text);
+                if (numberEl != null && numberEl.Text != "") number = lotId;
                 else return null;
 
                 // 3 Name
                 string name = "";
-                var nameEl = TryFindElement("//*[@id='item-page_0']/div/div/div[1]/div[3]/div[1]/div[1]/h1");
+                var nameEl = TryFindElement("/html/body/div[1]/div[3]/div[1]/div/div/div[1]/div[3]/div[1]/div[1]/h1");
                 if (nameEl != null && nameEl.Text != "") name = nameEl.Text;
                 else return null;
 
                 // 4 CurrentPrice
                 double currentPrice = 0;
-                var currentPriceEl = TryFindElement("//*[@id='trading']/div/div[1]/div/div[2]/div[2]/div[1]/div[1]/span/span[1]");
+                //                                   
+                var currentPriceEl = TryFindElement("/html/body/div[1]/div[3]/div[1]/div/div/div[1]/div[3]/div[3]/div[1]/div/div[1]/div/div[2]/div[2]/div[1]/div[1]/span/span[1]");
                 if (currentPriceEl != null && currentPriceEl.Text != "") currentPrice = Double.Parse(currentPriceEl.Text);
                 else return null;
 
                 // 5 StartDate
                 DateTime startDate = DateTime.UnixEpoch;
-                var startDateEl = TryFindElement("//*[@id='trading']/div/div[5]/div/div[2]/div/span[2]/span[2]");
-                if (startDateEl != null && startDateEl.Text != "") startDate = DateTime.Parse(startDateEl.Text);
+                var startDateEl = TryFindElement("/html/body/div[1]/div[3]/div[1]/div/div/div[1]/div[3]/div[3]/div[1]/div/div[4]/div/div[2]/div/span[2]/span[2]");
+                if (startDateEl != null && startDateEl.Text != "") startDate = ParseDate(startDateEl.Text);
                 else return null;
 
                 // 6
@@ -461,6 +466,37 @@ namespace AuctionController.Infrastructure.Selenium
                 AddLog("ParseLot_AURU(" + lotId + "): " + ex.Message);
                 return null;
             }
+        }
+
+        DateTime ParseDate(string text)
+        {
+            //(12 июля 2021 09:59)
+            Regex regex = new Regex(@"[0-9]{2}[ ][а-я]+[ ][0-9]{4}");
+            MatchCollection matches = regex.Matches(text);
+            if (matches.Count == 1)
+            {
+                string match = matches[0].Value;
+                string day = match.Substring(0, 2);
+
+                string mounth = match.Substring(2, (match.Length - 2 - 4));
+                if (mounth.Contains("янв")) mounth = "01";
+                else if (mounth.Contains("фев")) mounth = "02";
+                else if (mounth.Contains("мар")) mounth = "03";
+                else if (mounth.Contains("апр")) mounth = "04";
+                else if (mounth.Contains("май") || mounth.Contains("мая")) mounth = "05";
+                else if (mounth.Contains("июн")) mounth = "06";
+                else if (mounth.Contains("июл")) mounth = "07";
+                else if (mounth.Contains("авг")) mounth = "08";
+                else if (mounth.Contains("сен")) mounth = "09";
+                else if (mounth.Contains("окт")) mounth = "10";
+                else if (mounth.Contains("ноя")) mounth = "11";
+                else if (mounth.Contains("дек")) mounth = "12";
+                else return default;
+                string year = match.Substring(match.Length - 4, 4);
+
+                return DateTime.Parse(day + "." + mounth + "." + year + " 13:00");
+            }
+            else return default;
         }
 
         #endregion

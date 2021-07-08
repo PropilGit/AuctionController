@@ -65,7 +65,8 @@ namespace AuctionController.ViewModels
             15661860
         };
 
-        public ObservableCollection<Lot> Lots;
+        ObservableCollection<Lot> _Lots;
+        public ObservableCollection<Lot> Lots { get => _Lots; set => Set(ref _Lots, value); }
 
         #region GetLotsAURUCommand 
 
@@ -84,6 +85,18 @@ namespace AuctionController.ViewModels
         void GetLotsAURUAsync()
         {
             Lots = _SeleniumController.ParseLots_AURU(LotIds);
+            /*
+            Lots = new ObservableCollection<Lot>()
+            {
+                new Lot(0001, 0001, "Лот 1", 1001.00, DateTime.Now),
+                new Lot(0002, 0002, "Лот 2", 1002.00, DateTime.Now),
+                new Lot(0003, 0003, "Лот 3", 1003.00, DateTime.Now),
+                new Lot(0004, 0004, "Лот 4", 1004.00, DateTime.Now),
+                new Lot(0005, 0005, "Лот 5", 1005.00, DateTime.Now),
+                new Lot(0006, 0006, "Лот 6", 1006.00, DateTime.Now),
+                new Lot(0007, 0007, "Лот 7", 1007.00, DateTime.Now),
+            };
+            */
             _BlockInterface = false;
         }
 
@@ -114,7 +127,7 @@ namespace AuctionController.ViewModels
 
         #region WaitTime
 
-        int _WaitTime = 10;
+        int _WaitTime = 5;
         public int WaitTime
         {
             get => _WaitTime;

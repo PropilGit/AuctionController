@@ -54,7 +54,7 @@
         </DockPanel>
         <TabControl Grid.Row="1">
             <TabItem Header="Список лотов">
-                <DataGrid ItemsSource="{Binding Lots}">
+                <DataGrid ItemsSource="{Binding Lots}" AutoGenerateColumns="True">
 
                 </DataGrid>
             </TabItem>
