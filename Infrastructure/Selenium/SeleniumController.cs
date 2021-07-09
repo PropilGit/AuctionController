@@ -37,6 +37,7 @@ namespace AuctionController.Infrastructure.Selenium
 
             FirefoxOptions options = new FirefoxOptions();
             options.Profile = new FirefoxProfile(path);
+            //options.Profile.EnableNativeEvents = false;
             options.PageLoadStrategy = PageLoadStrategy.Eager;
 
             CodePagesEncodingProvider.Instance.GetEncoding(437);
@@ -149,6 +150,18 @@ namespace AuctionController.Infrastructure.Selenium
                 return null;
             }
         }
+        private IWebElement TryFindElementByCSS(string cssSel)
+        {
+            try
+            {
+                return wait.Until(e => e.FindElement(By.CssSelector(cssSel)));
+            }
+            catch (Exception ex)
+            {
+                AddLog("TryFindElementByCSS(" + cssSel + "): " + ex.Message, true);
+                return null;
+            }
+        }
 
         private IWebElement TryFindElement(IWebElement el, string xPath)
         {
@@ -159,6 +172,18 @@ namespace AuctionController.Infrastructure.Selenium
             catch (Exception ex)
             {
                 AddLog("TryFindElement(IWebElement, " + xPath + "): " + ex.Message, true);
+                return null;
+            }
+        }
+        private IWebElement TryFindElementByCSS(IWebElement el, string cssSel)
+        {
+            try
+            {
+                return el.FindElement(By.CssSelector(cssSel));
+            }
+            catch (Exception ex)
+            {
+                AddLog("TryFindElement(IWebElement, " + cssSel + "): " + ex.Message, true);
                 return null;
             }
         }
@@ -526,6 +551,36 @@ namespace AuctionController.Infrastructure.Selenium
                 foreach (var lot in lots)
                 {
                     string id = lot.GetAttribute("id").Substring(10);                
+                    int number = Int32.Parse(TryFindElement(lot, "table[1]/tbody/tr/th").Text.Substring(18));
+                    string name = TryFindElement(lot, "table[2]/tbody/tr[3]/td[2]").Text;
+                    float currentPrice = float.Parse(TryFindElement(lot, "table[2]/tbody/tr[9]/td[2]/table/tbody/tr[1]/td[4]").Text);
+                    DateTime startDate = DateTime.Parse(TryFindElement(lot, "table[2]/tbody/tr[9]/td[2]/table/tbody/tr[1]/td[2]/span").Text);
+
+                    result.Add(new Lot(id, number, name, currentPrice, startDate));
+                }
+                return result;
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+
+        public ObservableCollection<Lot> ParseLots_METS_SPEEDUP_MF()
+        {
+            try
+            {
+                // 1 
+                driver.Navigate().GoToUrl(@"https://m-ets.ru/generalView?id=174687291");
+
+                // 2
+                var lots = TryFindElements("//*[contains(@id,'block_lot_')]");
+
+                //3
+                ObservableCollection<Lot> result = new ObservableCollection<Lot>();
+                foreach (var lot in lots)
+                {
+                    string id = lot.GetAttribute("id").Substring(10);
                     int number = Int32.Parse(TryFindElement(lot, "table[1]/tbody/tr/th").Text.Substring(18));
                     string name = TryFindElement(lot, "table[2]/tbody/tr[3]/td[2]").Text;
                     float currentPrice = float.Parse(TryFindElement(lot, "table[2]/tbody/tr[9]/td[2]/table/tbody/tr[1]/td[4]").Text);

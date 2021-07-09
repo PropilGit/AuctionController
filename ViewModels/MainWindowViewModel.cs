@@ -72,7 +72,7 @@ namespace AuctionController.ViewModels
         }
         void GetLotsAURUAsync()
         {
-            Lots = _SeleniumController.ParseLots_METS_TEST_MF();
+            Lots = _SeleniumController.ParseLots_METS_SPEEDUP_MF();
             /*
             Lots = new ObservableCollection<Lot>()
             {
