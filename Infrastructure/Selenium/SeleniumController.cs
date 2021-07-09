@@ -29,14 +29,15 @@ namespace AuctionController.Infrastructure.Selenium
         IWebDriver driver;
         WebDriverWait wait;
 
-        public SeleniumController(int waitTime = 10)
+        public SeleniumController(int waitTime = 5)
         {
 
             //Firefox
-            string path = @"12345678.m-ets";
+            string path = @"m-ets";
 
             FirefoxOptions options = new FirefoxOptions();
             options.Profile = new FirefoxProfile(path);
+            options.PageLoadStrategy = PageLoadStrategy.Eager;
 
             CodePagesEncodingProvider.Instance.GetEncoding(437);
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
@@ -149,11 +150,11 @@ namespace AuctionController.Infrastructure.Selenium
             }
         }
 
-        private IWebElement TryFindElement(IWebElement parent, string xPath)
+        private IWebElement TryFindElement(IWebElement el, string xPath)
         {
             try
             {
-                return wait.Until(parent => parent.FindElement(By.XPath(xPath)));
+                return el.FindElement(By.XPath(xPath));
             }
             catch (Exception ex)
             {
@@ -404,14 +405,33 @@ namespace AuctionController.Infrastructure.Selenium
 
         #region ParseLots
 
-        public ObservableCollection<Lot> ParseLots_AURU(List<int> lotIds)
+        List<int> TestLotIds_AURU = new List<int>()
+        {
+            17841129,
+            17841270,
+            17011962,
+            13748863,
+            13742798,
+            7725899,
+            17731701,
+            17843855,
+            17843854,
+            15661860
+        };
+
+        List<string> TestLotIds_KADA = new List<string>()
+        {
+            "А19-11285/2019"
+        };
+
+        public ObservableCollection<Lot> ParseLots()
         {
             try
             {
                 ObservableCollection<Lot> result = new ObservableCollection<Lot>();
-                foreach (var id in lotIds)
+                foreach (var id in TestLotIds_KADA)
                 {
-                    result.Add(ParseLot_AURU(id));
+                    result.Add(ParseLot_KADA_MF(id));
                 }
                 return result;
             }
@@ -422,7 +442,7 @@ namespace AuctionController.Infrastructure.Selenium
             }
         }
 
-        public Lot ParseLot_AURU(int lotId)
+        public Lot ParseLot_AURU_MF(string lotId)
         {
             try
             {
@@ -435,36 +455,102 @@ namespace AuctionController.Infrastructure.Selenium
                 // 2 Number
                 int number = 0;
                 var numberEl = TryFindElement("//*[@id='item-page_0']/div/div/div[1]/div[3]/div[1]/div[2]/div/span[5]/a");
-                if (numberEl != null && numberEl.Text != "") number = lotId;
-                else return null;
+                if (numberEl != null && numberEl.Text != "") number = Int32.Parse(lotId);
+                else return Lot.Error(lotId);
 
                 // 3 Name
                 string name = "";
                 var nameEl = TryFindElement("/html/body/div[1]/div[3]/div[1]/div/div/div[1]/div[3]/div[1]/div[1]/h1");
                 if (nameEl != null && nameEl.Text != "") name = nameEl.Text;
-                else return null;
+                else return Lot.Error(lotId);
 
                 // 4 CurrentPrice
-                double currentPrice = 0;
+                float currentPrice = 0;
                 //                                   
                 var currentPriceEl = TryFindElement("/html/body/div[1]/div[3]/div[1]/div/div/div[1]/div[3]/div[3]/div[1]/div/div[1]/div/div[2]/div[2]/div[1]/div[1]/span/span[1]");
-                if (currentPriceEl != null && currentPriceEl.Text != "") currentPrice = Double.Parse(currentPriceEl.Text);
-                else return null;
+                if (currentPriceEl != null && currentPriceEl.Text != "") currentPrice = float.Parse(currentPriceEl.Text);
+                else return Lot.Error(lotId);
 
                 // 5 StartDate
                 DateTime startDate = DateTime.UnixEpoch;
                 var startDateEl = TryFindElement("/html/body/div[1]/div[3]/div[1]/div/div/div[1]/div[3]/div[3]/div[1]/div/div[4]/div/div[2]/div/span[2]/span[2]");
                 if (startDateEl != null && startDateEl.Text != "") startDate = ParseDate(startDateEl.Text);
-                else return null;
+                else return Lot.Error(lotId);
 
                 // 6
-                return new Lot(lotId, number, name, currentPrice, startDate);
+                return new Lot(lotId.ToString(), number, name, currentPrice, startDate);
             
             }
             catch (Exception ex)
             {
                 AddLog("ParseLot_AURU(" + lotId + "): " + ex.Message);
+                return Lot.Error(lotId);
+            }
+        }
+
+        public Lot ParseLot_KADA_MF(string lotId)
+        {
+            try
+            {
+                // 1 
+                driver.Navigate().GoToUrl(@"https://kad.arbitr.ru/");
+
+                // /html/body/div[1]/div[4]/div[1]/div/div/div/div[2]/div/a/div
+                TryFindElement("/html/body/div[1]/div[1]/div[1]/dl/dd/div[4]/div/input").SendKeys(lotId);
+
+                // 2 /html/body/div[1]/div[1]/div[1]/dl/dd/div[7]/div[1]/div/button
+
+                if (!TryClickOnElement("/html/body/div[1]/div[1]/div[1]/dl/dd/div[7]/div[1]/div/button")) return Lot.Error(lotId);
+                int iii = 0;
+                return Lot.Error(lotId);
+            }
+            catch (Exception ex)
+            {
+                AddLog("ParseLot_AURU(" + lotId + "): " + ex.Message);
+                return Lot.Error(lotId);
+            }
+        }
+
+        public ObservableCollection<Lot> ParseLots_METS_TEST_MF()
+        {
+            try
+            {
+                // 1 
+                driver.Navigate().GoToUrl(@"https://m-ets.ru/generalView?id=174687291");
+
+                // 2
+                var lots = TryFindElements("//*[contains(@id,'block_lot_')]");
+
+                //3
+                ObservableCollection<Lot> result = new ObservableCollection<Lot>();
+                foreach (var lot in lots)
+                {
+                    string id = lot.GetAttribute("id").Substring(10);                
+                    int number = Int32.Parse(TryFindElement(lot, "table[1]/tbody/tr/th").Text.Substring(18));
+                    string name = TryFindElement(lot, "table[2]/tbody/tr[3]/td[2]").Text;
+                    float currentPrice = float.Parse(TryFindElement(lot, "table[2]/tbody/tr[9]/td[2]/table/tbody/tr[1]/td[4]").Text);
+                    DateTime startDate = DateTime.Parse(TryFindElement(lot, "table[2]/tbody/tr[9]/td[2]/table/tbody/tr[1]/td[2]/span").Text);
+
+                    result.Add(new Lot(id, number, name, currentPrice, startDate));
+                }
+                return result;
+            }
+            catch (Exception ex)
+            {
                 return null;
+            }
+        }
+
+        public Lot ParseLot_METS_TEST_MF(string lotId)
+        {
+            try
+            {
+                return Lot.Error("");
+            }
+            catch (Exception ex)
+            {
+                AddLog("ParseLot_AURU(" + lotId + "): " + ex.Message);
+                return Lot.Error(lotId);
             }
         }
 

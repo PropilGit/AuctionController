@@ -51,19 +51,7 @@ namespace AuctionController.ViewModels
 
         #region Lots
 
-        List<int> LotIds = new List<int>()
-        {
-            17841129,
-            17841270,
-            17011962,
-            13748863,
-            13742798,
-            7725899,
-            17731701,
-            17843855,
-            17843854,
-            15661860
-        };
+        List<int> LotIds;
 
         ObservableCollection<Lot> _Lots;
         public ObservableCollection<Lot> Lots { get => _Lots; set => Set(ref _Lots, value); }
@@ -84,7 +72,7 @@ namespace AuctionController.ViewModels
         }
         void GetLotsAURUAsync()
         {
-            Lots = _SeleniumController.ParseLots_AURU(LotIds);
+            Lots = _SeleniumController.ParseLots_METS_TEST_MF();
             /*
             Lots = new ObservableCollection<Lot>()
             {
