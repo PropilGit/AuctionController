@@ -68,11 +68,11 @@ namespace AuctionController.ViewModels
         async private void OnGetLotsAURUCommandExecuted(object p)
         {
             _BlockInterface = true;
-            await Task.Run(() => GetLotsAURUAsync());
+            await Task.Run(() => GetLotsAsync());
         }
-        void GetLotsAURUAsync()
+        async void GetLotsAsync()
         {
-            Lots = _SeleniumController.ParseLots_METS_SPEEDUP_MF();
+            Lots = await _SeleniumController.ParseLots_METS_MF();
             /*
             Lots = new ObservableCollection<Lot>()
             {
