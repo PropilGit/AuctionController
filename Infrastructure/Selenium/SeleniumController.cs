@@ -11,6 +11,7 @@ using AuctionController.Models;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Collections.Concurrent;
+using System.Linq;
 
 namespace AuctionController.Infrastructure.Selenium
 {
@@ -544,7 +545,6 @@ namespace AuctionController.Infrastructure.Selenium
 
         #endregion
 
-
         public ObservableCollection<Lot> ParseLots_METS_TEST_MF()
         {
             try
@@ -574,9 +574,9 @@ namespace AuctionController.Infrastructure.Selenium
                 return null;
             }
         }
-
         public ObservableCollection<Lot> ParseAllLotsOnPage_METS_MF()
         {
+            ObservableCollection<Lot> result = new ObservableCollection<Lot>();
             try
             {
                 // 1 
@@ -586,7 +586,7 @@ namespace AuctionController.Infrastructure.Selenium
                 IEnumerable<IWebElement> lots = TryFindElements("//*[contains(@id,'block_lot_')]");
 
                 //3
-                ObservableCollection<Lot> result = new ObservableCollection<Lot>();
+                result = new ObservableCollection<Lot>();
                 Parallel.ForEach<IWebElement>(lots, lot => result.Add(ParseLot_METS_MF(lot)));
 
                 return result;
@@ -594,7 +594,7 @@ namespace AuctionController.Infrastructure.Selenium
             catch (Exception ex)
             {
                 AddLog("ParseAllLotsOnPage_METS_MF(): " + ex.Message);
-                return default;
+                return result;
             }
         }
 
@@ -635,6 +635,26 @@ namespace AuctionController.Infrastructure.Selenium
                 AddLog("ParseLot_AURU(): " + ex.Message);
                 return Lot.Error("");
             }
+        }
+
+        public List<Bet> UpdateLot_METS_MF(Lot lot)
+        {
+            Thread.Sleep(1000);
+
+            float summ;
+            string name;
+            DateTime time;
+            List<Bet> result = new List<Bet>();
+
+            if(lot.Bets[0].Summ == 0) summ = lot.StartPrice + lot.StartPrice * 0.1f;
+            else summ = lot.Bets[0].Summ + lot.StartPrice * 0.1f;
+
+            name = "Игрок " + DateTime.Now.Second.ToString();
+            time = DateTime.Now;
+
+            result.Add(new Bet(summ, name, time));
+
+            return result;
         }
 
         #endregion

@@ -6,6 +6,7 @@ using AuctionController.ViewModels.Base;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -27,6 +28,7 @@ namespace AuctionController.ViewModels
             //GetLotsAURU
             GetAllLotsCommand = new LambdaCommand(OnGetAllLotsCommandExecuted, CanGetAllLotsCommandExecute);
             GetLotsCommand = new LambdaCommand(OnGetLotsCommandExecuted, CanGetLotsCommandExecute);
+            UpdateLotsCommand = new LambdaCommand(OnUpdateLotsCommandExecuted, CanUpdateLotsCommandExecute);
         }
 
         #region AUs
@@ -52,13 +54,15 @@ namespace AuctionController.ViewModels
 
         #region Lots
 
+        public bool AutoUpdateLots { get; set; } = true;
+
         ObservableCollection<int> _LotIds = new ObservableCollection<int>
         {
             174687309,
             174687305,
             174687310,
             174687307,
-            174687308,
+            174687308/*,
             174687302,
             174687304,
             174687306,
@@ -71,7 +75,7 @@ namespace AuctionController.ViewModels
             174687313,
             174687314,
             174687316,
-            174687317
+            174687317*/
         };
         public ObservableCollection<int> LotIds { get => _LotIds; set => Set(ref _LotIds, value); }
 
@@ -82,6 +86,9 @@ namespace AuctionController.ViewModels
             set
             {
                 if (value == null) return;
+
+                for (int i = 0; i < value.Count; i++) value[i].Index = i;
+
                 Set(ref _Lots, value);
             }
         }
@@ -137,6 +144,46 @@ namespace AuctionController.ViewModels
                     Lots.Add(newLot);                  
                 });
             }
+            _BlockInterface = false;
+        }
+
+        #endregion
+
+        #region UpdateLotsCommand
+
+        public ICommand UpdateLotsCommand { get; }
+
+        private bool CanUpdateLotsCommandExecute(object p)
+        {
+            if (_BlockInterface) return false;
+            if (_SeleniumController == null) return false;
+            if (Lots == null || Lots.Count == 0) return false;
+            else return true;
+        }
+        async private void OnUpdateLotsCommandExecuted(object p)
+        {
+            _BlockInterface = true;
+            await Task.Run(() => UpdateLotsAsync());
+        }
+        void UpdateLotsAsync()
+        {
+            do
+            {
+                foreach (var lot in Lots)
+                {
+                    List<Bet> bets = _SeleniumController.UpdateLot_METS_MF(lot);
+                    if (bets == null || bets.Count == 0) return;
+
+                    App.Current.Dispatcher.Invoke((Action)delegate
+                    {
+                        foreach (var bet in bets)
+                        {
+                            lot.UpdateCurrentBet(bet);
+                        }
+                    });
+                }
+            } while (AutoUpdateLots);
+            
             _BlockInterface = false;
         }
 

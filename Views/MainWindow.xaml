@@ -27,7 +27,7 @@
                 <TextBlock Margin="5,5,5,5" Width="150" Height="40"
                        FontSize="32" FontFamily="Impact" TextAlignment="Center" 
                        Text="МЭТС"/>
-                <ComboBox Margin="5,10,5,10" Width="200" Height="20"
+                <ComboBox Margin="5,10,5,10" Width="200" Height="25"
                           ItemsSource="{Binding AUs}" DisplayMemberPath="Name"
                           SelectedItem="{Binding SelectedAU}"/>
             </StackPanel>
@@ -56,9 +56,56 @@
                                 Command="{Binding GetAllLotsCommand}"/>
                         <Button Content="Загрузить лоты по одному" 
                                 Command="{Binding GetLotsCommand}"/>
+                        <Button Content="Обновить все лоты" 
+                                Command="{Binding UpdateLotsCommand}"/>
+                        <CheckBox Content="Автообновление" Height="15" FontSize="11" 
+                                  IsChecked="{Binding AutoUpdateLots, Mode=TwoWay}"/>
                     </WrapPanel>
                     <DataGrid DockPanel.Dock="Bottom" 
-                              ItemsSource="{Binding Lots}" AutoGenerateColumns="True">
+                              ItemsSource="{Binding Lots}" AutoGenerateColumns="False">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="#" Binding="{Binding Index}"/>
+                            <DataGridTextColumn Header="Id" Binding="{Binding Id}"/>
+                            <DataGridTextColumn Header="№" Binding="{Binding Number}"/>
+                            <DataGridTextColumn Header="Name" Width="200" Binding="{Binding Name}"/>
+                            <!--DataGridTemplateColumn Header="Ставка">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <DataGrid AutoGenerateColumns="True" ItemsSource="{Binding Bets}"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn-->
+                            <DataGridTextColumn Header="Рост цены" Binding="{Binding PriceDifference, Mode=OneWay}"/>
+                            <DataGridTextColumn Header="Рост цены, %" Binding="{Binding PriceDifferenceProc, Mode=OneWay}"/>
+                            <DataGridTextColumn Header="Текущая ставка" Binding="{Binding Bets[0]}"/>
+                            <DataGridTextColumn Header="Ставка-1" Binding="{Binding Bets[1]}"/>
+                            <DataGridTextColumn Header="Ставка-2" Binding="{Binding Bets[2]}"/>
+                            <DataGridTextColumn Header="Ставка-3" Binding="{Binding Bets[3]}"/>
+                        </DataGrid.Columns>
+                        <!--DataGrid.RowDetailsTemplate>
+                            <DataTemplate>
+                                <Border BorderThickness="0" Background="BlanchedAlmond" Padding="10">
+                                    <StackPanel Orientation="Vertical">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock FontSize="12" Text="1: " VerticalAlignment="Center" />
+                                            <TextBlock FontSize="16" Foreground="MidnightBlue" Text="{Binding Bets[0]}" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock FontSize="12" Text="2: " VerticalAlignment="Center" />
+                                            <TextBlock FontSize="16" Foreground="MidnightBlue" Text="{Binding Bets[1]}" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock FontSize="12" Text="3: " VerticalAlignment="Center" />
+                                            <TextBlock FontSize="16" Foreground="MidnightBlue" Text="{Binding Bets[2]}" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock FontSize="12" Text="3: " VerticalAlignment="Center" />
+                                            <TextBlock FontSize="16" Foreground="MidnightBlue" Text="{Binding Bets[3]}" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </DataGrid.RowDetailsTemplate-->
                     </DataGrid>
                 </DockPanel>
             </TabItem>
