@@ -32,10 +32,6 @@
                           SelectedItem="{Binding SelectedAU}"/>
             </StackPanel>
             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Width="280">
-                <Button Margin="5,10,5,10"
-                    Width="70" Height="30" Content="Лоты" 
-                    Command="{Binding GetLotsAURUCommand}">
-                </Button>
                 <CheckBox VerticalAlignment="Center" IsEnabled="False"
                           IsChecked="{Binding Checked, Mode=OneWay}"/>
                 <Button Margin="5,10,5,10"
@@ -54,9 +50,17 @@
         </DockPanel>
         <TabControl Grid.Row="1">
             <TabItem Header="Список лотов">
-                <DataGrid ItemsSource="{Binding Lots}" AutoGenerateColumns="True">
-
-                </DataGrid>
+                <DockPanel>
+                    <WrapPanel DockPanel.Dock="Top" Margin="5,5,5,5">
+                        <Button Content="Загрузить лоты" 
+                                Command="{Binding GetAllLotsCommand}"/>
+                        <Button Content="Загрузить лоты по одному" 
+                                Command="{Binding GetLotsCommand}"/>
+                    </WrapPanel>
+                    <DataGrid DockPanel.Dock="Bottom" 
+                              ItemsSource="{Binding Lots}" AutoGenerateColumns="True">
+                    </DataGrid>
+                </DockPanel>
             </TabItem>
             <TabItem Header="Selenium">
                 <Grid>

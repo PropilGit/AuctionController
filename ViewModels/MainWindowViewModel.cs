@@ -25,7 +25,8 @@ namespace AuctionController.ViewModels
             CheckMETSCommand = new LambdaCommand(OnCheckMETSCommandExecuted, CanCheckMETSCommandExecute);
             ChangeWaitTimeCommand = new LambdaCommand(OnChangeWaitTimeCommandExecuted, CanChangeWaitTimeCommandExecute);
             //GetLotsAURU
-            GetLotsAURUCommand = new LambdaCommand(OnGetLotsAURUCommandExecuted, CanGetLotsAURUCommandExecute);
+            GetAllLotsCommand = new LambdaCommand(OnGetAllLotsCommandExecuted, CanGetAllLotsCommandExecute);
+            GetLotsCommand = new LambdaCommand(OnGetLotsCommandExecuted, CanGetLotsCommandExecute);
         }
 
         #region AUs
@@ -51,40 +52,91 @@ namespace AuctionController.ViewModels
 
         #region Lots
 
-        List<int> LotIds;
+        ObservableCollection<int> _LotIds = new ObservableCollection<int>
+        {
+            174687309,
+            174687305,
+            174687310,
+            174687307,
+            174687308,
+            174687302,
+            174687304,
+            174687306,
+            174687299,
+            174687300,
+            174687303,
+            174687311,
+            174687301,
+            174687312,
+            174687313,
+            174687314,
+            174687316,
+            174687317
+        };
+        public ObservableCollection<int> LotIds { get => _LotIds; set => Set(ref _LotIds, value); }
 
-        ObservableCollection<Lot> _Lots;
-        public ObservableCollection<Lot> Lots { get => _Lots; set => Set(ref _Lots, value); }
+        ObservableCollection<Lot> _Lots = new ObservableCollection<Lot>();
+        public ObservableCollection<Lot> Lots 
+        {
+            get => _Lots;
+            set
+            {
+                if (value == null) return;
+                Set(ref _Lots, value);
+            }
+        }
 
-        #region GetLotsAURUCommand 
+        #region GetAllLotsCommand
 
-        public ICommand GetLotsAURUCommand { get; }
-        private bool CanGetLotsAURUCommandExecute(object p)
+        public ICommand GetAllLotsCommand { get; }
+
+        private bool CanGetAllLotsCommandExecute(object p)
         {
             if (_BlockInterface) return false;
             if (_SeleniumController == null) return false;
+            if (Lots != null && Lots.Count > 0) return false;
             else return true;
         }
-        async private void OnGetLotsAURUCommandExecuted(object p)
+        async private void OnGetAllLotsCommandExecuted(object p)
+        {
+            _BlockInterface = true;
+            await Task.Run(() => GetAllLotsAsync());
+        }
+        void GetAllLotsAsync()
+        {
+            Lots = _SeleniumController.ParseAllLotsOnPage_METS_MF();
+            _BlockInterface = false;
+        }
+
+        #endregion
+
+        #region GetLotsCommand
+
+        public ICommand GetLotsCommand { get; }
+
+        private bool CanGetLotsCommandExecute(object p)
+        {
+            if (_BlockInterface) return false;
+            if (_SeleniumController == null) return false;
+            if (Lots != null && Lots.Count > 0) return false;
+            if (LotIds == null || LotIds.Count == 0) return false;
+            else return true;
+        }
+        async private void OnGetLotsCommandExecuted(object p)
         {
             _BlockInterface = true;
             await Task.Run(() => GetLotsAsync());
         }
-        async void GetLotsAsync()
+        void GetLotsAsync()
         {
-            Lots = await _SeleniumController.ParseLots_METS_MF();
-            /*
-            Lots = new ObservableCollection<Lot>()
+            foreach (var id in LotIds)
             {
-                new Lot(0001, 0001, "Лот 1", 1001.00, DateTime.Now),
-                new Lot(0002, 0002, "Лот 2", 1002.00, DateTime.Now),
-                new Lot(0003, 0003, "Лот 3", 1003.00, DateTime.Now),
-                new Lot(0004, 0004, "Лот 4", 1004.00, DateTime.Now),
-                new Lot(0005, 0005, "Лот 5", 1005.00, DateTime.Now),
-                new Lot(0006, 0006, "Лот 6", 1006.00, DateTime.Now),
-                new Lot(0007, 0007, "Лот 7", 1007.00, DateTime.Now),
-            };
-            */
+                Lot newLot = _SeleniumController.ParseLot_METS_MF(id);
+                App.Current.Dispatcher.Invoke((Action)delegate
+                {
+                    Lots.Add(newLot);                  
+                });
+            }
             _BlockInterface = false;
         }
 
