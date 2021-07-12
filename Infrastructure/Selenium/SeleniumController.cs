@@ -598,7 +598,7 @@ namespace AuctionController.Infrastructure.Selenium
             }
         }
 
-        public Lot ParseLot_METS_MF(int id)
+        public Lot ParseLot_METS_MF(string id)
         {
             try
             {
@@ -655,6 +655,25 @@ namespace AuctionController.Infrastructure.Selenium
             result.Add(new Bet(summ, name, time));
 
             return result;
+        }
+        public bool MakeBet_METS_MF(Lot lot, ArbitralManager au)
+        {
+            Thread.Sleep(1000);
+
+            float summ;
+            string name;
+            DateTime time;
+
+            if (lot.Bets[0].Summ == 0) summ = lot.StartPrice + lot.StartPrice * 0.1f;
+            else summ = lot.Bets[0].Summ + lot.StartPrice * 0.1f;
+
+            name = au.ShortName;
+            time = DateTime.Now;
+
+            Bet testBet = new Bet(summ, name, time);
+            lot.UpdateCurrentBet(testBet);
+            
+            return true;
         }
 
         #endregion

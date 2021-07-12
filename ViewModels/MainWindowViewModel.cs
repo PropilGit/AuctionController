@@ -29,6 +29,8 @@ namespace AuctionController.ViewModels
             GetAllLotsCommand = new LambdaCommand(OnGetAllLotsCommandExecuted, CanGetAllLotsCommandExecute);
             GetLotsCommand = new LambdaCommand(OnGetLotsCommandExecuted, CanGetLotsCommandExecute);
             UpdateLotsCommand = new LambdaCommand(OnUpdateLotsCommandExecuted, CanUpdateLotsCommandExecute);
+            ReloadLotsCommand = new LambdaCommand(OnReloadLotsCommandExecuted, CanReloadLotsCommandExecute);
+            MakeBetsCommand = new LambdaCommand(OnMakeBetsCommandExecuted, CanMakeBetsCommandExecute);
         }
 
         #region AUs
@@ -87,7 +89,11 @@ namespace AuctionController.ViewModels
             {
                 if (value == null) return;
 
-                for (int i = 0; i < value.Count; i++) value[i].Index = i;
+                for (int i = 0; i < value.Count; i++)
+                {
+                    if (value[i] == null) value[i] = Lot.Error("");
+                    value[i].Index = i;
+                }
 
                 Set(ref _Lots, value);
             }
@@ -138,7 +144,7 @@ namespace AuctionController.ViewModels
         {
             foreach (var id in LotIds)
             {
-                Lot newLot = _SeleniumController.ParseLot_METS_MF(id);
+                Lot newLot = _SeleniumController.ParseLot_METS_MF(id.ToString());
                 App.Current.Dispatcher.Invoke((Action)delegate
                 {
                     Lots.Add(newLot);                  
@@ -171,19 +177,98 @@ namespace AuctionController.ViewModels
             {
                 foreach (var lot in Lots)
                 {
-                    List<Bet> bets = _SeleniumController.UpdateLot_METS_MF(lot);
-                    if (bets == null || bets.Count == 0) return;
-
-                    App.Current.Dispatcher.Invoke((Action)delegate
-                    {
-                        foreach (var bet in bets)
-                        {
-                            lot.UpdateCurrentBet(bet);
-                        }
-                    });
+                    UpdateSingleLot(lot);
                 }
             } while (AutoUpdateLots);
             
+            _BlockInterface = false;
+        }
+
+        void UpdateSingleLot(Lot lot)
+        {
+            List<Bet> bets = _SeleniumController.UpdateLot_METS_MF(lot);
+            if (bets == null || bets.Count == 0) return;
+
+            App.Current.Dispatcher.Invoke((Action)delegate
+            {
+                foreach (var bet in bets)
+                {
+                    lot.UpdateCurrentBet(bet);
+                }
+            });
+        }
+
+        #endregion
+
+        #region ReloadLotsCommand
+
+        public ICommand ReloadLotsCommand{ get; }
+
+        private bool CanReloadLotsCommandExecute(object p)
+        {
+            if (_BlockInterface) return false;
+            if (_SeleniumController == null) return false;
+            if (Lots == null || Lots.Count == 0) return false;
+            else return true;
+        }
+        async private void OnReloadLotsCommandExecuted(object p)
+        {
+            _BlockInterface = true;
+            await Task.Run(() => ReloadLotsAsync());
+        }
+        void ReloadLotsAsync()
+        {
+            for (int i = 0; i < Lots.Count; i++)
+            {
+                if (!Lots[i].Checked) continue;
+
+                Lot newLot = _SeleniumController.ParseLot_METS_MF(Lots[i].Id);
+                if (newLot == null || newLot.Name == "Error") continue;
+
+                App.Current.Dispatcher.Invoke((Action)delegate
+                {
+                    Lots[i] = newLot;
+                });
+            }
+
+            _BlockInterface = false;
+        }
+
+        #endregion
+
+        #region MakeBetsCommand
+
+        public ICommand MakeBetsCommand { get; }
+
+        private bool CanMakeBetsCommandExecute(object p)
+        {
+            if (_BlockInterface) return false;
+            if (_SeleniumController == null) return false;
+            if (Lots == null || Lots.Count == 0) return false;
+            else return true;
+        }
+        async private void OnMakeBetsCommandExecuted(object p)
+        {
+            _BlockInterface = true;
+            await Task.Run(() => MakeBetsAsync());
+        }
+        void MakeBetsAsync()
+        {
+            foreach (var lot in Lots)
+            {
+                if (!lot.Checked) continue;
+
+                if (_SeleniumController.MakeBet_METS_MF(lot, SelectedAU))
+                {
+                    UpdateSingleLot(lot);
+                }
+                else
+                {
+                    AddLog("MakeBetsAsync(): Не удалось сделать ставку", true);
+                }
+                lot.Checked = false;
+            }
+
             _BlockInterface = false;
         }
 

@@ -56,14 +56,19 @@
                                 Command="{Binding GetAllLotsCommand}"/>
                         <Button Content="Загрузить лоты по одному" 
                                 Command="{Binding GetLotsCommand}"/>
-                        <Button Content="Обновить все лоты" 
+                        <Button Content="Перезагрузить выбранные лоты" 
+                                Command="{Binding ReloadLotsCommand}"/>
+                        <Button Content="Обновление лотов" 
                                 Command="{Binding UpdateLotsCommand}"/>
                         <CheckBox Content="Автообновление" Height="15" FontSize="11" 
                                   IsChecked="{Binding AutoUpdateLots, Mode=TwoWay}"/>
+                        <Button Content="Сделать ставку" Background="Red" Margin="50,0,0,0"
+                                Command="{Binding MakeBetsCommand}"/>
                     </WrapPanel>
                     <DataGrid DockPanel.Dock="Bottom" 
                               ItemsSource="{Binding Lots}" AutoGenerateColumns="False">
                         <DataGrid.Columns>
+                            <DataGridCheckBoxColumn Header="!" Binding="{Binding Checked, Mode=TwoWay}"/>
                             <DataGridTextColumn Header="#" Binding="{Binding Index}"/>
                             <DataGridTextColumn Header="Id" Binding="{Binding Id}"/>
                             <DataGridTextColumn Header="№" Binding="{Binding Number}"/>
