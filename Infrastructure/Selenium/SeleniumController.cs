@@ -503,7 +503,7 @@ namespace AuctionController.Infrastructure.Selenium
                 else return Lot.Error(lotId);
 
                 // 6
-                return new Lot(lotId.ToString(), number, name, currentPrice, startDate);
+                return new Lot(lotId.ToString(), number, name, currentPrice);
 
             }
             catch (Exception ex)
@@ -563,9 +563,9 @@ namespace AuctionController.Infrastructure.Selenium
                     int number = Int32.Parse(TryFindElement(lot, "table[1]/tbody/tr/th").Text.Substring(18));
                     string name = TryFindElement(lot, "table[2]/tbody/tr[3]/td[2]").Text;
                     float currentPrice = float.Parse(TryFindElement(lot, "table[2]/tbody/tr[9]/td[2]/table/tbody/tr[1]/td[4]").Text);
-                    DateTime startDate = DateTime.Parse(TryFindElement(lot, "table[2]/tbody/tr[9]/td[2]/table/tbody/tr[1]/td[2]/span").Text);
+                    //DateTime startDate = DateTime.Parse(TryFindElement(lot, "table[2]/tbody/tr[9]/td[2]/table/tbody/tr[1]/td[2]/span").Text);
 
-                    result.Add(new Lot(id, number, name, currentPrice, startDate));
+                    result.Add(new Lot(id, number, name, currentPrice));
                 }
                 return result;
             }
@@ -574,13 +574,13 @@ namespace AuctionController.Infrastructure.Selenium
                 return null;
             }
         }
-        public ObservableCollection<Lot> ParseAllLotsOnPage_METS_MF()
+        public ObservableCollection<Lot> ParseAllLotsOnPage_METS_MF(int id)
         {
             ObservableCollection<Lot> result = new ObservableCollection<Lot>();
             try
             {
                 // 1 
-                driver.Navigate().GoToUrl(@"https://m-ets.ru/generalView?id=174687291");
+                driver.Navigate().GoToUrl(@"https://m-ets.ru/generalView?id=" + id);
 
                 // 2
                 IEnumerable<IWebElement> lots = TryFindElements("//*[contains(@id,'block_lot_')]");
@@ -618,7 +618,8 @@ namespace AuctionController.Infrastructure.Selenium
                 return Lot.Error("");
             }
         }
-        public Lot ParseLot_METS_MF(IWebElement lot)
+        // После торгов
+        public Lot ParseLot_METS_MF_after(IWebElement lot)
         {
             try
             {
@@ -626,9 +627,33 @@ namespace AuctionController.Infrastructure.Selenium
                 int number = Int32.Parse(TryFindElement(lot, "table[1]/tbody/tr/th").Text.Substring(18));
                 string name = TryFindElement(lot, "table[2]/tbody/tr[3]/td[2]").Text;
                 float currentPrice = float.Parse(TryFindElement(lot, "table[2]/tbody/tr[9]/td[2]/table/tbody/tr[1]/td[4]").Text);
-                DateTime startDate = DateTime.Parse(TryFindElement(lot, "table[2]/tbody/tr[9]/td[2]/table/tbody/tr[1]/td[2]/span").Text);
+                //DateTime startDate = DateTime.Parse(TryFindElement(lot, "table[2]/tbody/tr[9]/td[2]/table/tbody/tr[1]/td[2]/span").Text);
 
-                return new Lot(id, number, name, currentPrice, startDate);
+                return new Lot(id, number, name, currentPrice);
+            }
+            catch (Exception ex)
+            {
+                AddLog("ParseLot_AURU(): " + ex.Message);
+                return Lot.Error("");
+            }
+        }
+        // 
+        public Lot ParseLot_METS_MF(IWebElement lot)
+        {
+            try
+            {
+                string id = lot.GetAttribute("id").Substring(10);
+
+                int number = Int32.Parse(TryFindElement(lot, "table[1]/tbody/tr/th").Text.Substring(18));
+
+                string name = TryFindElement(lot, "table[2]/tbody/tr[4]/td[2]").Text;
+
+                string _startPrice = TryFindElement(lot, "table[2]/tbody/tr[10]/td[2]/span").Text;
+                float startPrice = float.Parse(_startPrice.Substring(0, _startPrice.Length - 5));
+
+                //DateTime startDate = DateTime.Parse(TryFindElement(lot, "table[2]/tbody/tr[9]/td[2]/table/tbody/tr[1]/td[2]/span").Text);
+
+                return new Lot(id, number, name, startPrice);
             }
             catch (Exception ex)
             {
@@ -637,46 +662,128 @@ namespace AuctionController.Infrastructure.Selenium
             }
         }
 
-        public List<Bet> UpdateLot_METS_MF(Lot lot)
+        public void UpdateLot_METS_MF(Lot lot)
         {
-            Thread.Sleep(1000);
+            try
+            {
+                // 1
+                driver.Navigate().GoToUrl(@"https://m-ets.ru/auctionBid?lot_id=" + lot.Id);
 
-            float summ;
-            string name;
-            DateTime time;
-            List<Bet> result = new List<Bet>();
+                // 2 Текущая цена
+                float current_price = float.Parse(TryFindElement("//*[@id='current_price']").Text);
+                // Если цена не изменилась ничего не делаем
+                if (lot.CurrentPrice == current_price) return;
 
-            if(lot.Bets[0].Summ == 0) summ = lot.StartPrice + lot.StartPrice * 0.1f;
-            else summ = lot.Bets[0].Summ + lot.StartPrice * 0.1f;
+                // 3 Время завершения торгов
+                DateTime trade_end_date = DateTime.Parse(TryFindElement("//*[@id='trade_end_date']").Text);
 
-            name = "Игрок " + DateTime.Now.Second.ToString();
-            time = DateTime.Now;
+                // 4 Ставки
+                var bets = TryFindElements("//div[@id='logtable']/table/tbody/tr");
+                Bet[] lastBets = new Bet[4];
+                for (int i = 0; i < lastBets.Length; i++)
+                {
+                    string str_time = TryFindElement("/td[1]").Text;
+                    //string str_time = TryFindElement("//div[@id='logtable']/table/tbody/tr[" + (betsCount - 1 - i) + "]/td[1]").Text;
+                    DateTime time = DateTime.Parse(str_time);
 
-            result.Add(new Bet(summ, name, time));
+                    //string str_summ = TryFindElement("//div[@id='logtable']/table/tbody/tr[" + (betsCount - 1 - i) + "]/td[2]").Text;
+                    str_summ = FindRegExp(str_summ, @"[0-9 \,]{2,15}");
+                    if (str_summ == "") return;
+                    float summ = float.Parse(str_summ);
 
-            return result;
+                    lastBets[i] = new Bet(summ, "", time);
+                }
+
+                // 5 Обновляем данные в лоте
+                lot.Update(trade_end_date, current_price, lastBets);
+            }
+            catch (Exception ex)
+            {
+                AddLog("UpdateLot_METS_MF(lot:" + lot.Id + ")" + ex.Message, true);
+            }
         }
         public bool MakeBet_METS_MF(Lot lot, ArbitralManager au)
         {
-            Thread.Sleep(1000);
+            try
+            {
+                // 1
+                driver.Navigate().GoToUrl(@"https://m-ets.ru/auctionBid?lot_id=" + lot.Id);
 
-            float summ;
-            string name;
-            DateTime time;
+                // 2
+                TryFindElement("//input[@id='send_btn']").Click();
 
-            if (lot.Bets[0].Summ == 0) summ = lot.StartPrice + lot.StartPrice * 0.1f;
-            else summ = lot.Bets[0].Summ + lot.StartPrice * 0.1f;
+                // 3
+                IAlert alert = WaitForAlert();//TryFindAlert();
+                if (alert != null)
+                {
+                    // проверяем содержимое Alert-а
+                    if (alert != null && !alert.Text.Contains("Подписать и отправить ценовое предложение"))
+                    {
+                        AddLog("Неверный Alert: " + alert.Text, true);
+                        alert.Accept();
+                        return false;
+                    }
+                    alert.Accept();
+                }
+                else return false;
 
-            name = au.ShortName;
-            time = DateTime.Now;
+                // 4 Получаем элементы списка
+                var certificates = TryFindElements("//div[@id='certSel2']/div/label/div");
+                if (certificates == null) return false;
 
-            Bet testBet = new Bet(summ, name, time);
-            lot.UpdateCurrentBet(testBet);
-            
-            return true;
+                // 5 Кликаем по нужному элементу
+                // 5.1 Перебираем элементы списка
+                foreach (var cert in certificates)
+                {
+                    // 5.2 Кликаем по элементу если его заголовок содержит имя АУшника
+                    if (cert.Text.Contains(au.Name))
+                    {
+                        if (!TryClickOnElement(cert)) return false;
+                        break;
+                    }
+                }
+
+                // 6 Кнопка Далее
+                if (!TryClickOnElement("//input[@id='button_cert-dalee']")) return false;
+
+                // 7
+                alert = TryFindAlert();
+                if (alert != null)
+                {
+                    // проверяем содержимое Alert-а
+                    if (alert != null && !alert.Text.Contains("Ваше ценовое предложение на сумму"))
+                    {
+                        AddLog("Неверный Alert: " + alert.Text, true);
+                        alert.Accept();
+                        return false;
+                    }
+                    alert.Accept();
+                }
+                else return false;
+                
+                return true;
+            }
+            catch (Exception ex)
+            {
+                AddLog("MakeBet_METS_MF: " + ex.Message);
+                return false;
+            }
         }
 
         #endregion
+
+
+        string FindRegExp(string text, string regExp)
+        {
+            Regex regex = new Regex(regExp);
+            MatchCollection matches = regex.Matches(text);
+            if (matches.Count > 0)
+            {
+                return matches[0].Value;
+            }
+            return "";
+        }
+
     }
 }
 

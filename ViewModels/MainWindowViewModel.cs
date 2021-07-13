@@ -1,4 +1,5 @@
-﻿using AuctionController.Infrastructure.Commands.Base;
+﻿using AuctionController.Infrastructure;
+using AuctionController.Infrastructure.Commands.Base;
 using AuctionController.Infrastructure.JSON;
 using AuctionController.Infrastructure.Selenium;
 using AuctionController.Models;
@@ -25,8 +26,9 @@ namespace AuctionController.ViewModels
             StartCommand = new LambdaCommand(OnStartCommandExecuted, CanStartCommandExecute);
             CheckMETSCommand = new LambdaCommand(OnCheckMETSCommandExecuted, CanCheckMETSCommandExecute);
             ChangeWaitTimeCommand = new LambdaCommand(OnChangeWaitTimeCommandExecuted, CanChangeWaitTimeCommandExecute);
-            //GetLotsAURU
+            
             GetAllLotsCommand = new LambdaCommand(OnGetAllLotsCommandExecuted, CanGetAllLotsCommandExecute);
+            ClearLotsCommand = new LambdaCommand(OnClearLotsCommandExecuted, CanClearLotsCommandExecute);
             GetLotsCommand = new LambdaCommand(OnGetLotsCommandExecuted, CanGetLotsCommandExecute);
             UpdateLotsCommand = new LambdaCommand(OnUpdateLotsCommandExecuted, CanUpdateLotsCommandExecute);
             ReloadLotsCommand = new LambdaCommand(OnReloadLotsCommandExecuted, CanReloadLotsCommandExecute);
@@ -117,7 +119,7 @@ namespace AuctionController.ViewModels
         }
         void GetAllLotsAsync()
         {
-            Lots = _SeleniumController.ParseAllLotsOnPage_METS_MF();
+            Lots = _SeleniumController.ParseAllLotsOnPage_METS_MF(252031632);
             _BlockInterface = false;
         }
 
@@ -155,6 +157,39 @@ namespace AuctionController.ViewModels
 
         #endregion
 
+        #region ClearLotsCommand
+
+        public ICommand ClearLotsCommand { get; }
+
+        private bool CanClearLotsCommandExecute(object p)
+        {
+            if (_BlockInterface) return false;
+            if (Lots == null || Lots.Count == 0) return false;
+            else return true;
+        }
+        private void OnClearLotsCommandExecuted(object p)
+        {
+            List<Lot> choosenLots = new List<Lot>();
+            foreach (var lot in Lots)
+            {
+                if (lot.Checked) choosenLots.Add(lot);
+            }
+
+            if (choosenLots == null || choosenLots.Count == 0)
+            {
+                Lots = new ObservableCollection<Lot>();
+            }
+            else
+            {
+                foreach (var clot in choosenLots) 
+                {
+                    Lots.Remove(clot);
+                }
+            }
+        }
+
+        #endregion
+
         #region UpdateLotsCommand
 
         public ICommand UpdateLotsCommand { get; }
@@ -177,25 +212,11 @@ namespace AuctionController.ViewModels
             {
                 foreach (var lot in Lots)
                 {
-                    UpdateSingleLot(lot);
+                    _SeleniumController.UpdateLot_METS_MF(lot);
                 }
             } while (AutoUpdateLots);
             
             _BlockInterface = false;
-        }
-
-        void UpdateSingleLot(Lot lot)
-        {
-            List<Bet> bets = _SeleniumController.UpdateLot_METS_MF(lot);
-            if (bets == null || bets.Count == 0) return;
-
-            App.Current.Dispatcher.Invoke((Action)delegate
-            {
-                foreach (var bet in bets)
-                {
-                    lot.UpdateCurrentBet(bet);
-                }
-            });
         }
 
         #endregion
@@ -260,11 +281,11 @@ namespace AuctionController.ViewModels
 
                 if (_SeleniumController.MakeBet_METS_MF(lot, SelectedAU))
                 {
-                    UpdateSingleLot(lot);
+                    _SeleniumController.UpdateLot_METS_MF(lot);
                 }
                 else
                 {
-                    AddLog("MakeBetsAsync(): Не удалось сделать ставку", true);
+                    AddLog("MakeBetsAsync(): Не удалось сделать ставку (лот: " + lot.Id + ")", true);
                 }
                 lot.Checked = false;
             }
@@ -388,10 +409,10 @@ namespace AuctionController.ViewModels
         void CheckMETSAsync()
         {
             bool login = _SeleniumController.Login_METS_MF(SelectedAU);
-            bool sighature = _SeleniumController.CheckSignature_METS_MF(SelectedAU.Name);
+            bool sighature = true;// _SeleniumController.CheckSignature_METS_MF(SelectedAU.Name);
 
-            
-            if (login == true && sighature == true)
+
+            if (login && sighature)
             {
                 Checked = true;
                 Status = "[" + SelectedAU.Name + "] Вход в Личный кабинет и проверка ЭЦП завершились успешно";
@@ -437,6 +458,39 @@ namespace AuctionController.ViewModels
             {
                 logCounter = 0;
                 Log = "";
+            }
+        }
+
+        #endregion
+
+        #region Clock
+
+        Clock _Clock;
+
+        Clock InitializeClock()
+        {
+            try
+            {
+                Clock clock = Clock.GetInstance();
+
+                clock.onTimeUpdate += OnTimeUpdate;
+                //clock.onTimeUpdate += CheckAlertTasks;
+
+                OnTimeUpdate();
+                return clock;
+            }
+            catch (Exception ex)
+            {
+                AddLog("InitializeClock()" + ex.Message, true);
+                return null;
+            }
+
+        }
+        void OnTimeUpdate()
+        {
+            foreach (var lot in Lots)
+            {
+                lot.UpdateRemainingTime();
             }
         }
 

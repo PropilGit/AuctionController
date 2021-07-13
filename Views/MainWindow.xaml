@@ -54,8 +54,8 @@
                     <WrapPanel DockPanel.Dock="Top" Margin="5,5,5,5">
                         <Button Content="Загрузить лоты" 
                                 Command="{Binding GetAllLotsCommand}"/>
-                        <Button Content="Загрузить лоты по одному" 
-                                Command="{Binding GetLotsCommand}"/>
+                        <Button Content="Очистить список лотов" 
+                                Command="{Binding ClearLotsCommand}"/>
                         <Button Content="Перезагрузить выбранные лоты" 
                                 Command="{Binding ReloadLotsCommand}"/>
                         <Button Content="Обновление лотов" 
@@ -80,6 +80,7 @@
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn-->
+                            <DataGridTextColumn Header="Оставшееся время" Binding="{Binding RemainingTime, StringFormat=HH:mm:ss}"/>
                             <DataGridTextColumn Header="Рост цены" Binding="{Binding PriceDifference, Mode=OneWay}"/>
                             <DataGridTextColumn Header="Рост цены, %" Binding="{Binding PriceDifferenceProc, Mode=OneWay}"/>
                             <DataGridTextColumn Header="Текущая ставка" Binding="{Binding Bets[0]}"/>
@@ -114,7 +115,7 @@
                     </DataGrid>
                 </DockPanel>
             </TabItem>
-            <TabItem Header="Selenium">
+            <TabItem Header="Настройки">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
