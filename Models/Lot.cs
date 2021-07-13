@@ -43,7 +43,8 @@ namespace AuctionController.Models
         public float PriceDifferenceProc { get => (float)Math.Round((CurrentPrice - StartPrice) / (StartPrice / 100), 1); }
         //public DateTime StartDate { get; private set; }
         public DateTime EndTime { get; private set; }
-        public TimeSpan RemainingTime { get; private set; }
+        public TimeSpan RemainingTime { get => EndTime.Subtract(DateTime.Now); }
+        public string RemainingTimeToString { get => RemainingTime.Hours + ":" + RemainingTime.Minutes + ":" + RemainingTime.Seconds; }
         public float CurrentPrice { get; private set; }
         //public string PriceDifference { get; private set; }
 
@@ -61,12 +62,41 @@ namespace AuctionController.Models
                     OnPropertyChanged("PriceDifference");
                     OnPropertyChanged("PriceDifferenceProc");
 
+
                     OnPropertyChanged("RemainingTime");
 
                     for (int i = 0; i < Bets.Count; i++)
                     {
                         Bets[i] = newBets[i];
                     }
+                });
+
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        public bool Update(DateTime endTime, float currentPrice)
+        {
+            try
+            {
+                App.Current.Dispatcher.Invoke((Action)delegate
+                {
+                    EndTime = endTime.AddHours(4); //!!!!!!!!!
+                    OnPropertyChanged("EndTime");
+
+                    CurrentPrice = currentPrice;
+                    OnPropertyChanged("CurrentPrice");
+                    OnPropertyChanged("PriceDifference");
+                    OnPropertyChanged("PriceDifferenceProc");
+
+
+                    OnPropertyChanged("RemainingTime");
+                    //OnPropertyChanged("RemainingTimeToString");
+                    //OnPropertyChanged("Endtime");
                 });
 
                 return true;

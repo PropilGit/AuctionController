@@ -672,11 +672,14 @@ namespace AuctionController.Infrastructure.Selenium
                 // 2 Текущая цена
                 float current_price = float.Parse(TryFindElement("//*[@id='current_price']").Text);
                 // Если цена не изменилась ничего не делаем
-                if (lot.CurrentPrice == current_price) return;
+                //if (lot.CurrentPrice == current_price) return;
 
                 // 3 Время завершения торгов
                 DateTime trade_end_date = DateTime.Parse(TryFindElement("//*[@id='trade_end_date']").Text);
 
+                lot.Update(trade_end_date, current_price);
+
+                /*
                 // 4 Ставки
                 var bets = TryFindElements("//div[@id='logtable']/table/tbody/tr");
                 Bet[] lastBets = new Bet[4];
@@ -697,6 +700,7 @@ namespace AuctionController.Infrastructure.Selenium
 
                 // 5 Обновляем данные в лоте
                 lot.Update(trade_end_date, current_price, lastBets);
+                */
             }
             catch (Exception ex)
             {

@@ -73,13 +73,7 @@
                             <DataGridTextColumn Header="Id" Binding="{Binding Id}"/>
                             <DataGridTextColumn Header="№" Binding="{Binding Number}"/>
                             <DataGridTextColumn Header="Name" Width="200" Binding="{Binding Name}"/>
-                            <!--DataGridTemplateColumn Header="Ставка">
-                                <DataGridTemplateColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <DataGrid AutoGenerateColumns="True" ItemsSource="{Binding Bets}"/>
-                                    </DataTemplate>
-                                </DataGridTemplateColumn.CellTemplate>
-                            </DataGridTemplateColumn-->
+
                             <DataGridTextColumn Header="Оставшееся время" Binding="{Binding RemainingTime, StringFormat=HH:mm:ss}"/>
                             <DataGridTextColumn Header="Рост цены" Binding="{Binding PriceDifference, Mode=OneWay}"/>
                             <DataGridTextColumn Header="Рост цены, %" Binding="{Binding PriceDifferenceProc, Mode=OneWay}"/>
