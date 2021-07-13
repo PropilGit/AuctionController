@@ -686,6 +686,7 @@ namespace AuctionController.Infrastructure.Selenium
                     //string str_time = TryFindElement("//div[@id='logtable']/table/tbody/tr[" + (betsCount - 1 - i) + "]/td[1]").Text;
                     DateTime time = DateTime.Parse(str_time);
 
+                    string str_summ = TryFindElement("/td[2]").Text;
                     //string str_summ = TryFindElement("//div[@id='logtable']/table/tbody/tr[" + (betsCount - 1 - i) + "]/td[2]").Text;
                     str_summ = FindRegExp(str_summ, @"[0-9 \,]{2,15}");
                     if (str_summ == "") return;
