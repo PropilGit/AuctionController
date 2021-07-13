@@ -58,7 +58,9 @@ namespace AuctionController.ViewModels
 
         #region Lots
 
-        public bool AutoUpdateLots { get; set; } = true;
+        public bool AutoUpdateLots { get; set; } = false;
+        public bool AutoBet { get; set; } = false;
+        TimeSpan _AutoBetTime = new TimeSpan(0, 10, 0);
 
         ObservableCollection<int> _LotIds = new ObservableCollection<int>
         {
@@ -212,7 +214,14 @@ namespace AuctionController.ViewModels
             {
                 foreach (var lot in Lots)
                 {
-                    _SeleniumController.UpdateLot_METS_MF(lot);
+                    if (_SeleniumController.UpdateLot_METS_MF(lot))
+                    {
+                        if (AutoBet && lot.RemainingTime <= _AutoBetTime && !lot.Bets[0].IsMine)
+                        {
+                            _SeleniumController.MakeBet_METS_MF(lot, SelectedAU);
+                            _SeleniumController.UpdateLot_METS_MF(lot);
+                        }
+                    }
                 }
             } while (AutoUpdateLots);
             

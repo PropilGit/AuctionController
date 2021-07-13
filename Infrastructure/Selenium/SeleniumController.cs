@@ -152,6 +152,31 @@ namespace AuctionController.Infrastructure.Selenium
                 return null;
             }
         }
+        private IWebElement TryFindElement_Wait(string xPath, int attemptsCount = 5, int delay = 1000)
+        {
+            try
+            {
+                int i = 0;
+                while (i++ < attemptsCount)
+                {
+                    try
+                    {
+                        return driver.FindElement(By.XPath(xPath));
+                    }
+                    catch (StaleElementReferenceException e)
+                    {
+                        Thread.Sleep(delay);
+                        continue;
+                    }
+                }
+                return null;
+            }
+            catch (Exception ex)
+            {
+                AddLog("TryFindElement_Wait(" + xPath + "): " + ex.Message, true);
+                return null;
+            }
+        }
         private IWebElement TryFindElementByCSS(string cssSel)
         {
             try
@@ -662,49 +687,62 @@ namespace AuctionController.Infrastructure.Selenium
             }
         }
 
-        public void UpdateLot_METS_MF(Lot lot)
+        public bool UpdateLot_METS_MF(Lot lot)
         {
             try
             {
                 // 1
                 driver.Navigate().GoToUrl(@"https://m-ets.ru/auctionBid?lot_id=" + lot.Id);
 
+                string betsTable = TryFindElement("//div[@id='logtable']").GetAttribute("innerHTML");
+
                 // 2 Текущая цена
                 float current_price = float.Parse(TryFindElement("//*[@id='current_price']").Text);
                 // Если цена не изменилась ничего не делаем
-                //if (lot.CurrentPrice == current_price) return;
+                if (lot.CurrentPrice == current_price) return false;
 
                 // 3 Время завершения торгов
                 DateTime trade_end_date = DateTime.Parse(TryFindElement("//*[@id='trade_end_date']").Text);
 
-                lot.Update(trade_end_date, current_price);
+                //lot.Update(trade_end_date, current_price);
 
-                /*
+                
                 // 4 Ставки
-                var bets = TryFindElements("//div[@id='logtable']/table/tbody/tr");
+                string[] betsRows = betsTable.Split("<tr>");
+
                 Bet[] lastBets = new Bet[4];
                 for (int i = 0; i < lastBets.Length; i++)
                 {
-                    string str_time = TryFindElement("/td[1]").Text;
-                    //string str_time = TryFindElement("//div[@id='logtable']/table/tbody/tr[" + (betsCount - 1 - i) + "]/td[1]").Text;
+                    string row = betsRows[betsRows.Length - 1 - i];
+                    row = row.Replace("&nbsp;", "");
+                    //string str_time = TryFindElement("/td[1]").Text;
+                    //string str_time = TryFindElement_Wait(10, 2,"//div[@id='logtable']/table/tbody/tr[" + (betsCount - i) + "]/td[1]").Text;
+                    //int startIndex = betsRows[betsRows.Length - 1 - i].IndexOf(discriptionTag) + di;
+                    string str_time = FindRegExp(row, @"[0-9]{2}[:][0-9]{2}[:][0-9]{2}");//betsRows[betsRows.Length - 1 - i].Substring(27, 20);   
                     DateTime time = DateTime.Parse(str_time);
 
-                    string str_summ = TryFindElement("/td[2]").Text;
-                    //string str_summ = TryFindElement("//div[@id='logtable']/table/tbody/tr[" + (betsCount - 1 - i) + "]/td[2]").Text;
-                    str_summ = FindRegExp(str_summ, @"[0-9 \,]{2,15}");
-                    if (str_summ == "") return;
+                    //string str_discription = TryFindElement("/td[2]").Text;
+                    //string str_discription = TryFindElement_Wait(10, 2, "//div[@id='logtable']/table/tbody/tr[" + (betsCount - i) + "]/td[2]").Text;
+                    string str_discription = FindRegExp(row, @"<td>[ a-я\d\s\,]+<\/td>"); //<td> Принято ценовое предложение на сумму 2&nbsp;475,00  </td>
+                    if (str_discription == "") str_discription = FindRegExp(row, @"<b>[ a-я\d\s\/b\,]+<\/b>");
+                    string str_summ = FindRegExp(str_discription, @"[0-9 \,]{2,15}");
+                    //if (str_summ == "") return;
                     float summ = float.Parse(str_summ);
 
-                    lastBets[i] = new Bet(summ, "", time);
+                    bool isMine = false;
+                    if (str_discription.Contains("Ваше")) isMine = true;
+                    lastBets[i] = new Bet(summ, "", time, isMine);
                 }
 
                 // 5 Обновляем данные в лоте
-                lot.Update(trade_end_date, current_price, lastBets);
-                */
+                return lot.Update(trade_end_date, current_price, lastBets);
+
+                
             }
             catch (Exception ex)
             {
                 AddLog("UpdateLot_METS_MF(lot:" + lot.Id + ")" + ex.Message, true);
+                return false;
             }
         }
         public bool MakeBet_METS_MF(Lot lot, ArbitralManager au)

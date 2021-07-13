@@ -51,20 +51,27 @@
         <TabControl Grid.Row="1">
             <TabItem Header="Список лотов">
                 <DockPanel>
-                    <WrapPanel DockPanel.Dock="Top" Margin="5,5,5,5">
-                        <Button Content="Загрузить лоты" 
+                    <StackPanel  DockPanel.Dock="Top">
+                        <WrapPanel DockPanel.Dock="Top" Margin="5,2,5,2">
+                            <Button Content="Загрузить лоты" 
                                 Command="{Binding GetAllLotsCommand}"/>
-                        <Button Content="Очистить список лотов" 
+                            <Button Content="Очистить список лотов" 
                                 Command="{Binding ClearLotsCommand}"/>
-                        <Button Content="Перезагрузить выбранные лоты" 
+                            <Button Content="Перезагрузить выбранные лоты" 
                                 Command="{Binding ReloadLotsCommand}"/>
-                        <Button Content="Обновление лотов" 
+                            <Button Content="Обновление лотов" 
                                 Command="{Binding UpdateLotsCommand}"/>
-                        <CheckBox Content="Автообновление" Height="15" FontSize="11" 
+                            <CheckBox Content="Автообновление" Height="15" FontSize="11" 
                                   IsChecked="{Binding AutoUpdateLots, Mode=TwoWay}"/>
-                        <Button Content="Сделать ставку" Background="Red" Margin="50,0,0,0"
-                                Command="{Binding MakeBetsCommand}"/>
-                    </WrapPanel>
+                        </WrapPanel>
+                        <WrapPanel DockPanel.Dock="Top" Margin="5,2,5,2">
+                            <TextBlock FontSize="11" VerticalAlignment="Center" Text="10 мин."/>
+                            <CheckBox Content="Автоставка" Height="15" FontSize="11"
+                                  IsChecked="{Binding AutoBet, Mode=TwoWay}"/>
+                            <Button Content="Сделать ставку" Background="Red"
+                                    Command="{Binding MakeBetsCommand}"/>
+                        </WrapPanel>
+                    </StackPanel>
                     <DataGrid DockPanel.Dock="Bottom" 
                               ItemsSource="{Binding Lots}" AutoGenerateColumns="False">
                         <DataGrid.Columns>
@@ -74,11 +81,12 @@
                             <DataGridTextColumn Header="№" Binding="{Binding Number}"/>
                             <DataGridTextColumn Header="Name" Width="200" Binding="{Binding Name}"/>
 
-                            <DataGridTextColumn Header="Оставшееся время" Binding="{Binding RemainingTime, StringFormat=HH:mm:ss}"/>
+                            <DataGridTextColumn Header="Оставшееся время" Binding="{Binding RemainingTime, StringFormat=hh\\:mm\\:ss}"/>
                             <DataGridTextColumn Header="Рост цены" Binding="{Binding PriceDifference, Mode=OneWay}"/>
                             <DataGridTextColumn Header="Рост цены, %" Binding="{Binding PriceDifferenceProc, Mode=OneWay}"/>
+                            <DataGridTextColumn Header="Текущая ставка" Binding="{Binding CurrentPrice}"/>
                             <DataGridTextColumn Header="Текущая ставка" Binding="{Binding Bets[0]}"/>
-                            <DataGridTextColumn Header="Ставка-1" Binding="{Binding Bets[1]}"/>
+                            <DataGridTextColumn Header="Ставка-1" Binding="{Binding Bets[1], StringFormat=HH:mm:ss}"/>
                             <DataGridTextColumn Header="Ставка-2" Binding="{Binding Bets[2]}"/>
                             <DataGridTextColumn Header="Ставка-3" Binding="{Binding Bets[3]}"/>
                         </DataGrid.Columns>

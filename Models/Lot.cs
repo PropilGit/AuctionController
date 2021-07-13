@@ -34,10 +34,10 @@ namespace AuctionController.Models
         public float StartPrice { get; private set; }
         public ObservableCollection<Bet> Bets { get; private set; } = new ObservableCollection<Bet>
         {
-            new Bet(0, "---", DateTime.UnixEpoch),
-            new Bet(0, "---", DateTime.UnixEpoch),
-            new Bet(0, "---", DateTime.UnixEpoch),
-            new Bet(0, "---", DateTime.UnixEpoch)
+            new Bet(0, "---", DateTime.UnixEpoch, false),
+            new Bet(0, "---", DateTime.UnixEpoch, false),
+            new Bet(0, "---", DateTime.UnixEpoch, false),
+            new Bet(0, "---", DateTime.UnixEpoch, false)
         };
         public float PriceDifference { get => CurrentPrice - StartPrice; }
         public float PriceDifferenceProc { get => (float)Math.Round((CurrentPrice - StartPrice) / (StartPrice / 100), 1); }
