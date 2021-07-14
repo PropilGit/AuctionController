@@ -699,7 +699,7 @@ namespace AuctionController.Infrastructure.Selenium
                 // 2 Текущая цена
                 float current_price = float.Parse(TryFindElement("//*[@id='current_price']").Text);
                 // Если цена не изменилась ничего не делаем
-                if (lot.CurrentPrice == current_price) return false;
+                //if (lot.CurrentPrice == current_price) return false;
 
                 // 3 Время завершения торгов
                 DateTime trade_end_date = DateTime.Parse(TryFindElement("//*[@id='trade_end_date']").Text);
@@ -814,7 +814,6 @@ namespace AuctionController.Infrastructure.Selenium
         }
 
         #endregion
-
 
         string FindRegExp(string text, string regExp)
         {

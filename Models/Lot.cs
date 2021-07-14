@@ -54,7 +54,7 @@ namespace AuctionController.Models
             {
                 App.Current.Dispatcher.Invoke((Action)delegate
                 {
-                    EndTime = endTime;
+                    EndTime = endTime.AddHours(4); //!!!!!!!!!
                     OnPropertyChanged("EndTime");
 
                     CurrentPrice = currentPrice;
