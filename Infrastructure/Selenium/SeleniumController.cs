@@ -570,7 +570,7 @@ namespace AuctionController.Infrastructure.Selenium
 
         #endregion
 
-        public ObservableCollection<Lot> ParseLots_METS_TEST_MF()
+        public ObservableCollection<Lot> ___ParseLots_METS_TEST_MF()
         {
             try
             {
@@ -599,16 +599,21 @@ namespace AuctionController.Infrastructure.Selenium
                 return null;
             }
         }
-        public ObservableCollection<Lot> ParseAllLotsOnPage_METS_MF(int id)
+        public ObservableCollection<Lot> ParseAllLotsOnPage_METS_MF(string aucId)
         {
             ObservableCollection<Lot> result = new ObservableCollection<Lot>();
             try
             {
                 // 1 
-                driver.Navigate().GoToUrl(@"https://m-ets.ru/generalView?id=" + id);
+                driver.Navigate().GoToUrl(@"https://m-ets.ru/generalView?id=" + aucId);
 
                 // 2
                 IEnumerable<IWebElement> lots = TryFindElements("//*[contains(@id,'block_lot_')]");
+                if(lots == null)
+                {
+                    AddLog("ParseAllLotsOnPage_METS_MF(): Не найдено ни одного лота!");
+                    return new ObservableCollection<Lot>();
+                }
 
                 //3
                 result = new ObservableCollection<Lot>();
@@ -623,6 +628,7 @@ namespace AuctionController.Infrastructure.Selenium
             }
         }
 
+        /*
         public Lot ParseLot_METS_MF(string id)
         {
             try
@@ -643,8 +649,9 @@ namespace AuctionController.Infrastructure.Selenium
                 return Lot.Error("");
             }
         }
+        */
         // После торгов
-        public Lot ParseLot_METS_MF_after(IWebElement lot)
+        public Lot ___ParseLot_METS_MF_after(IWebElement lot)
         {
             try
             {
@@ -662,7 +669,6 @@ namespace AuctionController.Infrastructure.Selenium
                 return Lot.Error("");
             }
         }
-        // 
         public Lot ParseLot_METS_MF(IWebElement lot)
         {
             try
@@ -682,8 +688,27 @@ namespace AuctionController.Infrastructure.Selenium
             }
             catch (Exception ex)
             {
-                AddLog("ParseLot_AURU(): " + ex.Message);
+                AddLog("ParseLot_METS_MF(): " + ex.Message);
                 return Lot.Error("");
+            }
+        }
+        public Lot ParseSingleLot_METS_MF(string aucId, string lotId)
+        {
+            try
+            {
+                // 1 
+                driver.Navigate().GoToUrl(@"https://m-ets.ru/generalView?id=" + aucId);
+
+                // 2
+                IWebElement lot = TryFindElement("//*[contains(@id,'block_lot_" + lotId + "')]");
+
+                //3
+                return ParseLot_METS_MF(lot);
+            }
+            catch (Exception ex)
+            {
+                AddLog("ParseSingleLot_METS_MF(): " + ex.Message);
+                return Lot.Error(lotId);
             }
         }
 

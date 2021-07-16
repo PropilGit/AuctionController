@@ -29,7 +29,6 @@ namespace AuctionController.ViewModels
             
             GetAllLotsCommand = new LambdaCommand(OnGetAllLotsCommandExecuted, CanGetAllLotsCommandExecute);
             ClearLotsCommand = new LambdaCommand(OnClearLotsCommandExecuted, CanClearLotsCommandExecute);
-            GetLotsCommand = new LambdaCommand(OnGetLotsCommandExecuted, CanGetLotsCommandExecute);
             UpdateLotsCommand = new LambdaCommand(OnUpdateLotsCommandExecuted, CanUpdateLotsCommandExecute);
             ReloadLotsCommand = new LambdaCommand(OnReloadLotsCommandExecuted, CanReloadLotsCommandExecute);
             MakeBetsCommand = new LambdaCommand(OnMakeBetsCommandExecuted, CanMakeBetsCommandExecute);
@@ -58,35 +57,26 @@ namespace AuctionController.ViewModels
 
         #region Lots
 
-        public bool AutoUpdateLots { get; set; } = false;
+        #region AuctionID
+
+        string _AuctionID = "252031632";
+        public string AuctionID { get => _AuctionID; set => Set(ref _AuctionID, value); }
+
+        #endregion
+
+        #region AutoBet
+
         public bool AutoBet { get; set; } = false;
         TimeSpan _AutoBetTime = new TimeSpan(0, 10, 0);
 
-        ObservableCollection<int> _LotIds = new ObservableCollection<int>
-        {
-            174687309,
-            174687305,
-            174687310,
-            174687307,
-            174687308/*,
-            174687302,
-            174687304,
-            174687306,
-            174687299,
-            174687300,
-            174687303,
-            174687311,
-            174687301,
-            174687312,
-            174687313,
-            174687314,
-            174687316,
-            174687317*/
-        };
-        public ObservableCollection<int> LotIds { get => _LotIds; set => Set(ref _LotIds, value); }
+        #endregion
+
+        public bool AutoUpdateLots { get; set; } = false;
+
+        #region Lots
 
         ObservableCollection<Lot> _Lots = new ObservableCollection<Lot>();
-        public ObservableCollection<Lot> Lots 
+        public ObservableCollection<Lot> Lots
         {
             get => _Lots;
             set
@@ -102,6 +92,8 @@ namespace AuctionController.ViewModels
                 Set(ref _Lots, value);
             }
         }
+
+        #endregion
 
         #region GetAllLotsCommand
 
@@ -121,39 +113,7 @@ namespace AuctionController.ViewModels
         }
         void GetAllLotsAsync()
         {
-            Lots = _SeleniumController.ParseAllLotsOnPage_METS_MF(252031632);
-            _BlockInterface = false;
-        }
-
-        #endregion
-
-        #region GetLotsCommand
-
-        public ICommand GetLotsCommand { get; }
-
-        private bool CanGetLotsCommandExecute(object p)
-        {
-            if (_BlockInterface) return false;
-            if (_SeleniumController == null) return false;
-            if (Lots != null && Lots.Count > 0) return false;
-            if (LotIds == null || LotIds.Count == 0) return false;
-            else return true;
-        }
-        async private void OnGetLotsCommandExecuted(object p)
-        {
-            _BlockInterface = true;
-            await Task.Run(() => GetLotsAsync());
-        }
-        void GetLotsAsync()
-        {
-            foreach (var id in LotIds)
-            {
-                Lot newLot = _SeleniumController.ParseLot_METS_MF(id.ToString());
-                App.Current.Dispatcher.Invoke((Action)delegate
-                {
-                    Lots.Add(newLot);                  
-                });
-            }
+            Lots = _SeleniumController.ParseAllLotsOnPage_METS_MF(AuctionID);
             _BlockInterface = false;
         }
 
@@ -231,7 +191,7 @@ namespace AuctionController.ViewModels
         #endregion
 
         #region ReloadLotsCommand
-
+        
         public ICommand ReloadLotsCommand{ get; }
 
         private bool CanReloadLotsCommandExecute(object p)
@@ -252,8 +212,12 @@ namespace AuctionController.ViewModels
             {
                 if (!Lots[i].Checked) continue;
 
-                Lot newLot = _SeleniumController.ParseLot_METS_MF(Lots[i].Id);
-                if (newLot == null || newLot.Name == "Error") continue;
+                Lot newLot = _SeleniumController.ParseSingleLot_METS_MF(AuctionID, Lots[i].Id);
+                if (newLot == null || newLot.Name == "Error")
+                {
+                    AddLog("Не удалось перезагрузить лот " + Lots[i].Id);
+                    continue;
+                }
 
                 App.Current.Dispatcher.Invoke((Action)delegate
                 {
@@ -263,7 +227,7 @@ namespace AuctionController.ViewModels
 
             _BlockInterface = false;
         }
-
+        
         #endregion
 
         #region MakeBetsCommand
@@ -418,7 +382,7 @@ namespace AuctionController.ViewModels
         void CheckMETSAsync()
         {
             bool login = _SeleniumController.Login_METS_MF(SelectedAU);
-            bool sighature = true;// _SeleniumController.CheckSignature_METS_MF(SelectedAU.Name);
+            bool sighature = _SeleniumController.CheckSignature_METS_MF(SelectedAU.Name);
 
 
             if (login && sighature)
@@ -450,7 +414,7 @@ namespace AuctionController.ViewModels
         private string _Log = "";
         public string Log { get => _Log; set => Set(ref _Log, value); }
 
-        public void AddLog(string msg, bool isError = false)
+        public void AddLog(string msg, bool isError = true)
         {
             //если есть пометка об ошибке
             if (isError)
@@ -512,15 +476,3 @@ namespace AuctionController.ViewModels
 
 #region _
 #endregion
-/*
-#region _Command 
-
-public ICommand _Command { get; }
-private bool Can_CommandExecute(object p) => true;
-private void On_CommandExecuted(object p)
-{
-    
-}
-
-#endregion
-*/
