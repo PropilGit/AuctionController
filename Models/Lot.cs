@@ -27,6 +27,7 @@ namespace AuctionController.Models
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
         public bool Checked { get; set; }
+        public string Indication { get; set; } = "";
         public int Index { get; set; }
         public string Id { get; private set; }
         public int Number { get; private set; }

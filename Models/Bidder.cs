@@ -4,9 +4,9 @@ using System.Text;
 
 namespace AuctionController.Models
 {
-    class ArbitralManager
+    class Bidder
     {
-        public ArbitralManager(string name, string shortName, string login, string password)
+        public Bidder(string name, string shortName, string login, string password)
         {
             Name = name;
             ShortName = shortName;

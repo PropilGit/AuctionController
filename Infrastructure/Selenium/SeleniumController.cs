@@ -373,7 +373,7 @@ namespace AuctionController.Infrastructure.Selenium
                 return false;
             }
         }
-        public bool Login_METS_IE(ArbitralManager AU)
+        public bool Login_METS_IE(Bidder AU)
         {
             try
             {
@@ -412,7 +412,7 @@ namespace AuctionController.Infrastructure.Selenium
                 return false;
             }
         }
-        public bool Login_METS_MF(ArbitralManager AU)
+        public bool Login_METS_MF(Bidder AU)
         {
             try
             {
@@ -770,17 +770,21 @@ namespace AuctionController.Infrastructure.Selenium
                 return false;
             }
         }
-        public bool MakeBet_METS_MF(Lot lot, ArbitralManager au)
+        public bool MakeBet_METS_MF(Lot lot, Bidder au)
         {
             try
             {
                 // 1
                 driver.Navigate().GoToUrl(@"https://m-ets.ru/auctionBid?lot_id=" + lot.Id);
 
-                // 2
-                TryFindElement("//input[@id='send_btn']").Click();
+                // 2 Проверяем текущую цену
+                float current_price = float.Parse(TryFindElement("//*[@id='current_price']").Text);
+                if (current_price != lot.CurrentPrice) return true;
 
                 // 3
+                TryFindElement("//input[@id='send_btn']").Click();
+
+                // 4
                 IAlert alert = WaitForAlert();//TryFindAlert();
                 if (alert != null)
                 {
@@ -795,15 +799,15 @@ namespace AuctionController.Infrastructure.Selenium
                 }
                 else return false;
 
-                // 4 Получаем элементы списка
+                // 5 Получаем элементы списка
                 var certificates = TryFindElements("//div[@id='certSel2']/div/label/div");
                 if (certificates == null) return false;
 
-                // 5 Кликаем по нужному элементу
-                // 5.1 Перебираем элементы списка
+                // 6 Кликаем по нужному элементу
+                // 6.1 Перебираем элементы списка
                 foreach (var cert in certificates)
                 {
-                    // 5.2 Кликаем по элементу если его заголовок содержит имя АУшника
+                    // 6.2 Кликаем по элементу если его заголовок содержит имя АУшника
                     if (cert.Text.Contains(au.Name))
                     {
                         if (!TryClickOnElement(cert)) return false;
@@ -811,10 +815,10 @@ namespace AuctionController.Infrastructure.Selenium
                     }
                 }
 
-                // 6 Кнопка Далее
+                // 7 Кнопка Далее
                 if (!TryClickOnElement("//input[@id='button_cert-dalee']")) return false;
 
-                // 7
+                // 8
                 alert = TryFindAlert();
                 if (alert != null)
                 {

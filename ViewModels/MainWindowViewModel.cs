@@ -38,15 +38,15 @@ namespace AuctionController.ViewModels
 
         string AUPath = "AUs.json";
 
-        public ObservableCollection<ArbitralManager> AUs { get; private set; }
-        public ArbitralManager SelectedAU { get; set; } 
+        public ObservableCollection<Bidder> AUs { get; private set; }
+        public Bidder SelectedAU { get; set; } 
 
         void LoadAUList()
         {
-            AUs = JSONConverter.OpenJSONFile<ObservableCollection<ArbitralManager>>(AUPath);
+            AUs = JSONConverter.OpenJSONFile<ObservableCollection<Bidder>>(AUPath);
             if (AUs == null || AUs.Count == 0)
             {
-                AUs = new ObservableCollection<ArbitralManager>();
+                AUs = new ObservableCollection<Bidder>();
                 SelectedAU = null;
                 AddLog("Ошибка загрузки списка Арбитражных Управляющих", true);
             }
@@ -174,6 +174,7 @@ namespace AuctionController.ViewModels
             {
                 foreach (var lot in Lots)
                 {
+                    lot.Indication = ">>>";
                     if (_SeleniumController.UpdateLot_METS_MF(lot))
                     {
                         if (AutoBet && lot.RemainingTime <= _AutoBetTime && !lot.Bets[0].IsMine)
@@ -182,6 +183,7 @@ namespace AuctionController.ViewModels
                             _SeleniumController.UpdateLot_METS_MF(lot);
                         }
                     }
+                    lot.Indication = "";
                 }
             } while (AutoUpdateLots);
             
