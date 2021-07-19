@@ -2,6 +2,7 @@
 using AuctionController.Infrastructure.Commands.Base;
 using AuctionController.Infrastructure.JSON;
 using AuctionController.Infrastructure.Selenium;
+using AuctionController.Infrastructure.Telegram;
 using AuctionController.Models;
 using AuctionController.ViewModels.Base;
 using System;
@@ -21,6 +22,9 @@ namespace AuctionController.ViewModels
         {
             LoadAUList();
 
+
+            //_TelegramBot = InitializeTelegramBot();
+
             //_Command = new LambdaCommand(On_CommandExecuted, Can_CommandExecute);
 
             StartCommand = new LambdaCommand(OnStartCommandExecuted, CanStartCommandExecute);
@@ -34,23 +38,23 @@ namespace AuctionController.ViewModels
             MakeBetsCommand = new LambdaCommand(OnMakeBetsCommandExecuted, CanMakeBetsCommandExecute);
         }
 
-        #region AUs
+        #region Bidders
 
-        string AUPath = "AUs.json";
+        string BiddersPath = "bidders.json";
 
-        public ObservableCollection<Bidder> AUs { get; private set; }
-        public Bidder SelectedAU { get; set; } 
+        public ObservableCollection<Bidder> Bidders { get; private set; }
+        public Bidder SelectedBidder { get; set; } 
 
         void LoadAUList()
         {
-            AUs = JSONConverter.OpenJSONFile<ObservableCollection<Bidder>>(AUPath);
-            if (AUs == null || AUs.Count == 0)
+            Bidders = JSONConverter.OpenJSONFile<ObservableCollection<Bidder>>(BiddersPath);
+            if (Bidders == null || Bidders.Count == 0)
             {
-                AUs = new ObservableCollection<Bidder>();
-                SelectedAU = null;
+                Bidders = new ObservableCollection<Bidder>();
+                SelectedBidder = null;
                 AddLog("Ошибка загрузки списка Арбитражных Управляющих", true);
             }
-            else SelectedAU = AUs[0];
+            else SelectedBidder = Bidders[0];
         }
 
         #endregion
@@ -179,7 +183,7 @@ namespace AuctionController.ViewModels
                     {
                         if (AutoBet && lot.RemainingTime <= _AutoBetTime && !lot.Bets[0].IsMine)
                         {
-                            _SeleniumController.MakeBet_METS_MF(lot, SelectedAU);
+                            _SeleniumController.MakeBet_METS_MF(lot, SelectedBidder);
                             _SeleniumController.UpdateLot_METS_MF(lot);
                         }
                     }
@@ -254,7 +258,7 @@ namespace AuctionController.ViewModels
             {
                 if (!lot.Checked) continue;
 
-                if (_SeleniumController.MakeBet_METS_MF(lot, SelectedAU))
+                if (_SeleniumController.MakeBet_METS_MF(lot, SelectedBidder))
                 {
                     _SeleniumController.UpdateLot_METS_MF(lot);
                 }
@@ -373,7 +377,7 @@ namespace AuctionController.ViewModels
         {
             if (_BlockInterface) return false;
             if (_SeleniumController == null) return false;
-            if (SelectedAU == null) return false;
+            if (SelectedBidder == null) return false;
             else return true;
         }
         async private void OnCheckMETSCommandExecuted(object p)
@@ -383,14 +387,14 @@ namespace AuctionController.ViewModels
         }     
         void CheckMETSAsync()
         {
-            bool login = _SeleniumController.Login_METS_MF(SelectedAU);
-            bool sighature = _SeleniumController.CheckSignature_METS_MF(SelectedAU.Name);
+            bool login = _SeleniumController.Login_METS_MF(SelectedBidder);
+            bool sighature = _SeleniumController.CheckSignature_METS_MF(SelectedBidder.Name);
 
 
             if (login && sighature)
             {
                 Checked = true;
-                Status = "[" + SelectedAU.Name + "] Вход в Личный кабинет и проверка ЭЦП завершились успешно";
+                Status = "[" + SelectedBidder.Name + "] Вход в Личный кабинет и проверка ЭЦП завершились успешно";
             }
             _BlockInterface = false;
         }
@@ -423,7 +427,7 @@ namespace AuctionController.ViewModels
             {
                 msg = "ERROR: " + msg;
                 Status = msg;
-                //_TelegramBot.SendMessageToChat(msg, GetChatId(debugChat.Tag));
+                _TelegramBot.SendMessageToChat(msg, DebugChatId);
             }
             Log += "[" + DateTime.Now + "] " + msg + "\r\n";
             logCounter++;
@@ -468,6 +472,38 @@ namespace AuctionController.ViewModels
                 lot.UpdateRemainingTime();
             }
         }
+
+        #endregion
+
+        #region TelegramBot
+
+        TelegramBot _TelegramBot;
+
+        TelegramBot InitializeTelegramBot()
+        {
+            TelegramBot newTelegramBot = TelegramBot.GetInstance();
+            newTelegramBot.onLogUpdate += AddLog;
+            //newTelegramBot.onCommandExecute += TelegramBotCommandExecute;
+
+            return newTelegramBot;
+        }
+
+        #region ChatId
+
+        public long ChatId { get; private set; } = 0;
+        public long DebugChatId { get; private set; } = -1001320796606;
+
+        string chatPath = "chatId.json";
+        void LoadChatsList()
+        {
+            ChatId = JSONConverter.OpenJSONFile<long>(chatPath);
+            if (ChatId == 0)
+            {
+                AddLog("Ошибка загрузки id чата.", true);
+            }
+        }
+
+        #endregion
 
         #endregion
 

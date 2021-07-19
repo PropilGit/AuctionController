@@ -770,7 +770,7 @@ namespace AuctionController.Infrastructure.Selenium
                 return false;
             }
         }
-        public bool MakeBet_METS_MF(Lot lot, Bidder au)
+        public bool MakeBet_METS_MF(Lot lot, Bidder bidder)
         {
             try
             {
@@ -808,7 +808,7 @@ namespace AuctionController.Infrastructure.Selenium
                 foreach (var cert in certificates)
                 {
                     // 6.2 Кликаем по элементу если его заголовок содержит имя АУшника
-                    if (cert.Text.Contains(au.Name))
+                    if (cert.Text.Contains(bidder.Name))
                     {
                         if (!TryClickOnElement(cert)) return false;
                         break;
