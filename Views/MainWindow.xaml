@@ -28,8 +28,8 @@
                        FontSize="32" FontFamily="Impact" TextAlignment="Center" 
                        Text="МЭТС"/>
                 <ComboBox Margin="5,10,5,10" Width="200" Height="25"
-                          ItemsSource="{Binding AUs}" DisplayMemberPath="Name"
-                          SelectedItem="{Binding SelectedAU}"/>
+                          ItemsSource="{Binding Bidders}" DisplayMemberPath="Name"
+                          SelectedItem="{Binding SelectedBidder}"/>
             </StackPanel>
             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Width="280">
                 <CheckBox VerticalAlignment="Center" IsEnabled="False"
@@ -70,7 +70,9 @@
                                   IsChecked="{Binding AutoUpdateLots, Mode=TwoWay}"/>
                             <CheckBox Content="Автоставка" Height="15" FontSize="11" Margin="50,0,5,0"
                                   IsChecked="{Binding AutoBet, Mode=TwoWay}"/>
-                            <ListBox Width="30"/>
+                            <ComboBox Width="50"
+                                      ItemsSource="{Binding BetTimer}"
+                                      SelectedItem="{Binding SelectedBetTimer}"/>
                             <TextBlock FontSize="11" VerticalAlignment="Center" Margin="5,0,5,0"
                                        Text=" мин. до окончания"/>
                             <Button Content="Сделать ставку" Background="Red" Margin="5,0,5,0"
@@ -90,6 +92,7 @@
                             <DataGridTextColumn Header="Name" Width="200" Binding="{Binding Name}"/>
 
                             <DataGridTextColumn Header="Оставшееся время" Binding="{Binding RemainingTime, StringFormat=hh\\:mm\\:ss}"/>
+                            <DataGridTextColumn Header="Время завершения" Binding="{Binding EndTime, StringFormat=hh\\:mm\\:ss}"/>
                             <DataGridTextColumn Header="Рост цены" Binding="{Binding PriceDifference, Mode=OneWay}"/>
                             <DataGridTextColumn Header="Рост цены, %" Binding="{Binding PriceDifferenceProc, Mode=OneWay}"/>
                             <DataGridTextColumn Header="Текущая ставка" Binding="{Binding CurrentPrice}"/>

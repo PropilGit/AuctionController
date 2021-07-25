@@ -617,9 +617,14 @@ namespace AuctionController.Infrastructure.Selenium
 
                 //3
                 result = new ObservableCollection<Lot>();
-                Parallel.ForEach<IWebElement>(lots, lot => result.Add(ParseLot_METS_MF(lot)));
-
+                //Parallel.ForEach<IWebElement>(lots, lot => result.Add(ParseLot_METS_MF(lot)));
+                //
+                foreach (var lot in lots)
+                {
+                    result.Add(___ParseLot_METS_MF_after(lot));
+                }
                 return result;
+                //
             }
             catch (Exception ex)
             {
@@ -658,7 +663,10 @@ namespace AuctionController.Infrastructure.Selenium
                 string id = lot.GetAttribute("id").Substring(10);
                 int number = Int32.Parse(TryFindElement(lot, "table[1]/tbody/tr/th").Text.Substring(18));
                 string name = TryFindElement(lot, "table[2]/tbody/tr[3]/td[2]").Text;
-                float currentPrice = float.Parse(TryFindElement(lot, "table[2]/tbody/tr[9]/td[2]/table/tbody/tr[1]/td[4]").Text);
+                //float currentPrice = float.Parse(TryFindElement(lot, "table[2]/tbody/tr[9]/td[2]/table/tbody/tr[1]/td[4]").Text);
+                string currentPriceString = TryFindElement(lot, "table[2]/tbody/tr[9]/td[2]/span").Text;
+                float currentPrice = float.Parse(currentPriceString.Substring(0, currentPriceString.Length - 5));
+                
                 //DateTime startDate = DateTime.Parse(TryFindElement(lot, "table[2]/tbody/tr[9]/td[2]/table/tbody/tr[1]/td[2]/span").Text);
 
                 return new Lot(id, number, name, currentPrice);

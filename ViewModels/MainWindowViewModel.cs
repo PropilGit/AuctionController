@@ -22,7 +22,7 @@ namespace AuctionController.ViewModels
         {
             LoadAUList();
 
-
+            _Clock = InitializeClock();
             //_TelegramBot = InitializeTelegramBot();
 
             //_Command = new LambdaCommand(On_CommandExecuted, Can_CommandExecute);
@@ -71,7 +71,25 @@ namespace AuctionController.ViewModels
         #region AutoBet
 
         public bool AutoBet { get; set; } = false;
-        TimeSpan _AutoBetTime = new TimeSpan(0, 10, 0);
+
+        TimeSpan _AutoBetTime = new TimeSpan(0, 5, 0);
+
+        #endregion
+
+        #region BetTimer
+
+        public ObservableCollection<int> BetTimer { get; private set; } = new ObservableCollection<int>() { 29, 20, 10, 5, 4, 3, 2, 1 };
+
+        public int _SelectedBetTimer = 5;
+        public int SelectedBetTimer
+        {
+            get => _SelectedBetTimer;
+            set
+            {
+                _AutoBetTime = new TimeSpan(0, value, 0);
+                _SelectedBetTimer = value;
+            }
+        }
 
         #endregion
 
@@ -427,7 +445,7 @@ namespace AuctionController.ViewModels
             {
                 msg = "ERROR: " + msg;
                 Status = msg;
-                _TelegramBot.SendMessageToChat(msg, DebugChatId);
+                //_TelegramBot.SendMessageToChat(msg, DebugChatId);
             }
             Log += "[" + DateTime.Now + "] " + msg + "\r\n";
             logCounter++;
