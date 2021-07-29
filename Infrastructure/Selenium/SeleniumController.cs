@@ -33,7 +33,7 @@ namespace AuctionController.Infrastructure.Selenium
 
         public SeleniumController(int waitTime = 5)
         {
-
+            
             //Firefox
             string path = @"m-ets";
 

@@ -269,11 +269,11 @@ namespace AuctionController.ViewModels
                     {
                         if (AutoBet && lot.RemainingTime <= _AutoBetTime && !lot.Bets[0].IsMine)
                         {
-                            _SeleniumController.MakeBet_METS_MF(lot, SelectedBidder);
+                            if (_SeleniumController.MakeBet_METS_MF(lot, SelectedBidder)) lot.Indication = "CТАВКА";
                             _SeleniumController.UpdateLot_METS_MF(lot);
                         }
                     }
-                    lot.Indication = "";
+                    if(lot.Indication == ">>>") lot.Indication = "";
                 }
             } while (AutoUpdateLots);
             

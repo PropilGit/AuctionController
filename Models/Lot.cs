@@ -28,7 +28,7 @@ namespace AuctionController.Models
 
         public bool Checked { get; set; }
 
-        public string _Indication = "";
+        string _Indication = "";
         public string Indication {
             get { return _Indication; }
             set {
