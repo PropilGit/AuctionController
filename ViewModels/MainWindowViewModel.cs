@@ -122,7 +122,7 @@ namespace AuctionController.ViewModels
         #region BetTimer, AutoUpdateLots
 
         public bool AutoUpdateLots { get; set; } = false;
-        public ObservableCollection<int> BetTimer { get; private set; } = new ObservableCollection<int>() { 29, 20, 10, 5, 4, 3, 2, 1 };
+        public ObservableCollection<int> BetTimer { get; private set; } = new ObservableCollection<int>() { 99, 29, 20, 10, 5, 4, 3, 2, 1 };
 
         public int _SelectedBetTimer = 5;
         public int SelectedBetTimer
@@ -346,10 +346,12 @@ namespace AuctionController.ViewModels
 
                 if (_SeleniumController.MakeBet_METS_MF(lot, SelectedBidder))
                 {
+                    lot.Indication = "СТАВКА";
                     _SeleniumController.UpdateLot_METS_MF(lot);
                 }
                 else
                 {
+                    lot.Indication = "!ERR!";
                     AddLog("MakeBetsAsync(): Не удалось сделать ставку (лот: " + lot.Id + ")", true);
                 }
                 lot.Checked = false;
@@ -476,11 +478,11 @@ namespace AuctionController.ViewModels
             bool login = _SeleniumController.Login_METS_MF(SelectedBidder);
             bool sighature = _SeleniumController.CheckSignature_METS_MF(SelectedBidder.Name);
 
-
+            Status = "[" + SelectedBidder.Name + "] Вход в Личный кабинет = " + login + ", проверка ЭЦП = " + sighature;
             if (login && sighature)
             {
                 Checked = true;
-                Status = "[" + SelectedBidder.Name + "] Вход в Личный кабинет и проверка ЭЦП завершились успешно";
+                //Status = "[" + SelectedBidder.Name + "] Вход в Личный кабинет и проверка ЭЦП завершились успешно";
             }
             _BlockInterface = false;
         }
