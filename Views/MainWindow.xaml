@@ -56,7 +56,12 @@
                             <TextBlock Text="ID торгов:" Margin="0,0,5,0"/>
                             <TextBox Width="70" Margin="5,0,5,0" TextAlignment="Right"
                                      Text="{Binding AuctionID}"/>
+                            <TextBlock Text="Номера лотов(через запятую):" Margin="10,0,0,0"/>
+                            <TextBox Width="100" Margin="0,0,5,0" TextAlignment="Right"
+                                     Text="{Binding SelectedLotsNumbers, UpdateSourceTrigger=PropertyChanged}"/>
                             <Button Content="Загрузить лоты" Margin="5,0,5,0" 
+                                    Command="{Binding GetSelectedLotsCommand}"/>
+                            <Button Content="Загрузить все лоты" Margin="5,0,5,0" 
                                 Command="{Binding GetAllLotsCommand}"/>
                             <Button Content="Очистить список" Margin="5,0,5,0"
                                 Command="{Binding ClearLotsCommand}"/>
@@ -70,7 +75,7 @@
                                   IsChecked="{Binding AutoUpdateLots, Mode=TwoWay}"/>
                             <CheckBox Content="Автоставка" Height="15" FontSize="11" Margin="50,0,5,0"
                                   IsChecked="{Binding AutoBet, Mode=TwoWay}"/>
-                            <ComboBox Width="50"
+                            <ComboBox Width="41"
                                       ItemsSource="{Binding BetTimer}"
                                       SelectedItem="{Binding SelectedBetTimer}"/>
                             <TextBlock FontSize="11" VerticalAlignment="Center" Margin="5,0,5,0"
@@ -86,6 +91,7 @@
                               ItemsSource="{Binding Lots}" AutoGenerateColumns="False">
                         <DataGrid.Columns>
                             <DataGridCheckBoxColumn Header="!" Binding="{Binding Checked, Mode=TwoWay}"/>
+                            <DataGridTextColumn Header=">>>" Binding="{Binding Indication}"/>
                             <DataGridTextColumn Header="#" Binding="{Binding Index}"/>
                             <DataGridTextColumn Header="Id" Binding="{Binding Id}"/>
                             <DataGridTextColumn Header="№" Binding="{Binding Number}"/>

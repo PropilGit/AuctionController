@@ -617,14 +617,14 @@ namespace AuctionController.Infrastructure.Selenium
 
                 //3
                 result = new ObservableCollection<Lot>();
-                //Parallel.ForEach<IWebElement>(lots, lot => result.Add(ParseLot_METS_MF(lot)));
-                //
+                Parallel.ForEach<IWebElement>(lots, lot => result.Add(ParseLot_METS_MF(lot)));
+                /*
                 foreach (var lot in lots)
                 {
                     result.Add(___ParseLot_METS_MF_after(lot));
                 }
+                */
                 return result;
-                //
             }
             catch (Exception ex)
             {
@@ -632,30 +632,44 @@ namespace AuctionController.Infrastructure.Selenium
                 return result;
             }
         }
-
-        /*
-        public Lot ParseLot_METS_MF(string id)
+        public ObservableCollection<Lot> ParseSelectedLotsOnPage_METS_MF(string aucId, List<int> selectedLotsNumbers)
         {
+            ObservableCollection<Lot> result = new ObservableCollection<Lot>();
             try
             {
                 // 1 
-                driver.Navigate().GoToUrl(@"https://m-ets.ru/generalView?id=174687291");
+                driver.Navigate().GoToUrl(@"https://m-ets.ru/generalView?id=" + aucId);
 
                 // 2
-                string xpath = "//*[@id='block_lot_" + id + "']";
-                IWebElement lot = TryFindElement(xpath);
+                result = new ObservableCollection<Lot>();
+                IEnumerable<IWebElement> lots = TryFindElements("//*[contains(@id,'block_lot_')]");
+                foreach (var lotNum in selectedLotsNumbers)
+                {
+                    //поиск по содержимому
+                    /*
+                    string seach = "<a name=\"lot" + lotNum + "\" class=\"lotanchor\" >";
+                    foreach (var lot in lots)
+                    {                       
+                        if (lot.Text.Contains(seach))
+                        {
+                            result.Add(ParseLot_METS_MF(lot));
+                            break;
+                        }
+                    }
+                    AddLog("ParseAllLotsOnPage_METS_MF(): Не найден лот №" + lotNum + "!");
+                    */
 
-                // 3
-                return ParseLot_METS_MF(lot);
+                    result.Add(ParseLot_METS_MF(lots.ElementAt(lotNum - 1)));
+                }
+
+                return result;
             }
             catch (Exception ex)
             {
-                AddLog("ParseLot_AURU(): " + ex.Message);
-                return Lot.Error("");
+                AddLog("ParseAllLotsOnPage_METS_MF(): " + ex.Message);
+                return result;
             }
         }
-        */
-        // После торгов
         public Lot ___ParseLot_METS_MF_after(IWebElement lot)
         {
             try
@@ -677,6 +691,8 @@ namespace AuctionController.Infrastructure.Selenium
                 return Lot.Error("");
             }
         }
+
+
         public Lot ParseLot_METS_MF(IWebElement lot)
         {
             try
@@ -687,6 +703,7 @@ namespace AuctionController.Infrastructure.Selenium
 
                 string name = TryFindElement(lot, "table[2]/tbody/tr[4]/td[2]").Text;
 
+                ///html/body/div[15]/div[3]/div[2]/div[2]/div[5]/table[2]/tbody/tr[10]/td[2]/span
                 string _startPrice = TryFindElement(lot, "table[2]/tbody/tr[10]/td[2]/span").Text;
                 float startPrice = float.Parse(_startPrice.Substring(0, _startPrice.Length - 5));
 
@@ -720,6 +737,7 @@ namespace AuctionController.Infrastructure.Selenium
             }
         }
 
+
         public bool UpdateLot_METS_MF(Lot lot)
         {
             try
@@ -732,17 +750,32 @@ namespace AuctionController.Infrastructure.Selenium
                 // 2 Текущая цена
                 float current_price = float.Parse(TryFindElement("//*[@id='current_price']").Text);
                 // Если цена не изменилась ничего не делаем
-                //if (lot.CurrentPrice == current_price) return false;
+                //if (lot.CurrentPrice == current_price) return true;
 
                 // 3 Время завершения торгов
                 DateTime trade_end_date = DateTime.Parse(TryFindElement("//*[@id='trade_end_date']").Text);
 
                 //lot.Update(trade_end_date, current_price);
 
-                
                 // 4 Ставки
-                string[] betsRows = betsTable.Split("<tr>");
+                Bet[] lastBets = ParseLastBets(betsTable.Split("<tr>"));
+                if (lastBets == null) return false;
 
+                // 5 Обновляем данные в лоте
+                return lot.Update(trade_end_date, current_price, lastBets);
+
+                
+            }
+            catch (Exception ex)
+            {
+                AddLog("UpdateLot_METS_MF(lot:" + lot.Id + ")" + ex.Message, true);
+                return false;
+            }
+        }
+        Bet[] ParseLastBets(string[] betsRows)
+        {
+            try
+            {
                 Bet[] lastBets = new Bet[4];
                 for (int i = 0; i < lastBets.Length; i++)
                 {
@@ -766,18 +799,16 @@ namespace AuctionController.Infrastructure.Selenium
                     if (str_discription.Contains("Ваше")) isMine = true;
                     lastBets[i] = new Bet(summ, "", time, isMine);
                 }
-
-                // 5 Обновляем данные в лоте
-                return lot.Update(trade_end_date, current_price, lastBets);
-
-                
+                return lastBets;
             }
             catch (Exception ex)
             {
-                AddLog("UpdateLot_METS_MF(lot:" + lot.Id + ")" + ex.Message, true);
-                return false;
+                AddLog("ParseLastBets():" + ex);
+                return null;
             }
         }
+
+
         public bool MakeBet_METS_MF(Lot lot, Bidder bidder)
         {
             try

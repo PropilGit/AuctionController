@@ -30,7 +30,8 @@ namespace AuctionController.ViewModels
             StartCommand = new LambdaCommand(OnStartCommandExecuted, CanStartCommandExecute);
             CheckMETSCommand = new LambdaCommand(OnCheckMETSCommandExecuted, CanCheckMETSCommandExecute);
             ChangeWaitTimeCommand = new LambdaCommand(OnChangeWaitTimeCommandExecuted, CanChangeWaitTimeCommandExecute);
-            
+
+            GetSelectedLotsCommand = new LambdaCommand(OnGetSelectedLotsCommandExecuted, CanGetSelectedLotsCommandExecute);
             GetAllLotsCommand = new LambdaCommand(OnGetAllLotsCommandExecuted, CanGetAllLotsCommandExecute);
             ClearLotsCommand = new LambdaCommand(OnClearLotsCommandExecuted, CanClearLotsCommandExecute);
             UpdateLotsCommand = new LambdaCommand(OnUpdateLotsCommandExecuted, CanUpdateLotsCommandExecute);
@@ -63,7 +64,7 @@ namespace AuctionController.ViewModels
 
         #region AuctionID
 
-        string _AuctionID = "252031632";
+        string _AuctionID = "252073694";
         public string AuctionID { get => _AuctionID; set => Set(ref _AuctionID, value); }
 
         #endregion
@@ -76,8 +77,51 @@ namespace AuctionController.ViewModels
 
         #endregion
 
-        #region BetTimer
+        #region SelectedLots
 
+        List<int> _SelectedLotsNumbers = new List<int>() { 2 };
+
+        public string SelectedLotsNumbers
+        {
+            get
+            {
+                if (_SelectedLotsNumbers == null || _SelectedLotsNumbers.Count == 0) return "";
+
+                string result = "";
+                foreach (var num in _SelectedLotsNumbers)
+                {
+                    result += num.ToString() + ", ";
+                }
+                result = result.Substring(0, result.Length - 1);
+                return result;
+            }
+            set
+            {
+                try
+                {
+                    if (value == "") return;
+                    string[] numbers = value.Split(",");
+
+                    if (numbers == null || numbers.Length == 0) return;
+                    _SelectedLotsNumbers.Clear();
+                    foreach (var num in numbers)
+                    {
+                        _SelectedLotsNumbers.Add(Int32.Parse(num));
+                    }
+                }
+                catch (Exception ex)
+                {
+                    //AddLog("Не удалось получить список лотов");
+                    //SelectedLotsNumbers = "";
+                }
+            }
+        }
+
+        #endregion
+
+        #region BetTimer, AutoUpdateLots
+
+        public bool AutoUpdateLots { get; set; } = false;
         public ObservableCollection<int> BetTimer { get; private set; } = new ObservableCollection<int>() { 29, 20, 10, 5, 4, 3, 2, 1 };
 
         public int _SelectedBetTimer = 5;
@@ -92,8 +136,6 @@ namespace AuctionController.ViewModels
         }
 
         #endregion
-
-        public bool AutoUpdateLots { get; set; } = false;
 
         #region Lots
 
@@ -113,6 +155,32 @@ namespace AuctionController.ViewModels
 
                 Set(ref _Lots, value);
             }
+        }
+
+        #endregion
+
+        #region GetSelectedLotsCommand
+
+        public ICommand GetSelectedLotsCommand { get; }
+
+        private bool CanGetSelectedLotsCommandExecute(object p)
+        {
+            if (_BlockInterface) return false;
+            if (_SeleniumController == null) return false;
+            if (Lots != null && Lots.Count > 0) return false;
+            if (_SelectedLotsNumbers == null || _SelectedLotsNumbers.Count == 0) return false;
+            
+            return true;
+        }
+        async private void OnGetSelectedLotsCommandExecuted(object p)
+        {
+            _BlockInterface = true;
+            await Task.Run(() => GetSelectedLotsAsync());
+        }
+        void GetSelectedLotsAsync()
+        {
+            Lots = _SeleniumController.ParseSelectedLotsOnPage_METS_MF(AuctionID, _SelectedLotsNumbers);
+            _BlockInterface = false;
         }
 
         #endregion
