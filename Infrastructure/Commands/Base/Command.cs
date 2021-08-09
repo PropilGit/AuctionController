@@ -3,7 +3,7 @@ using System.Windows.Input;
 
 namespace AuctionController.Infrastructure.Commands.Base
 {
-    internal abstract class Command
+    internal abstract class Command : ICommand
     {
         public event EventHandler CanExecuteChanged
         {

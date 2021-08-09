@@ -7,7 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Models\" />
+    <PackageReference Include="Selenium.Firefox.WebDriver" Version="0.27.0" />
+    <PackageReference Include="Selenium.Support" Version="3.141.0" />
+    <PackageReference Include="Selenium.WebDriver" Version="3.141.0" />
+    <PackageReference Include="Selenium.WebDriver.IEDriver" Version="3.150.1.2" />
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="5.0.0" />
+    <PackageReference Include="Telegram.Bot" Version="16.0.2" />
   </ItemGroup>
 
 </Project>
